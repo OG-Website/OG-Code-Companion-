@@ -1,0 +1,604 @@
+{
+  "libraries": [
+    {
+      "name": "csv",
+      "languages": [
+        "Python"
+      ],
+      "description": "Read CSV rows as dictionaries without installing a package.",
+      "tags": [
+        "csv",
+        "data",
+        "comma",
+        "spreadsheet",
+        "dictionaries"
+      ],
+      "docs": "https://docs.python.org/3/library/csv.html",
+      "install": "Included with Python",
+      "snippet": "import csv\n\n# Match these column names to your own CSV header.\nwith open(\"journeys.csv\", newline=\"\", encoding=\"utf-8-sig\") as source:\n    for row in csv.DictReader(source):\n        print(row)\n# Expand this by validating each row before adding it to your application.\n",
+      "program": "# CSV to JSON starter — OG Companion\n# Run: python og-starter.py journeys.csv valid-journeys.json\n# Read any CSV headers, reject incomplete rows, display valid rows and save JSON.\nimport argparse\nimport csv\nimport json\nfrom pathlib import Path\n\n\ndef valid_row(row):\n    # DictReader uses None for missing cells and for extra unnamed columns.\n    return bool(row) and None not in row and all(\n        isinstance(value, str) and bool(value.strip()) for value in row.values()\n    )\n\n\ndef load_rows(path):\n    accepted = []\n    rejected = 0\n    with path.open(encoding=\"utf-8-sig\", newline=\"\") as source:\n        reader = csv.DictReader(source)\n        if not reader.fieldnames:\n            raise ValueError(\"The CSV needs a header row.\")\n        for row in reader:\n            if valid_row(row):\n                accepted.append(row)\n            else:\n                rejected += 1\n    return accepted, rejected\n\n\ndef main():\n    parser = argparse.ArgumentParser(description=\"Check CSV rows and save valid records as JSON.\")\n    parser.add_argument(\"input_csv\", type=Path)\n    parser.add_argument(\"output_json\", type=Path)\n    args = parser.parse_args()\n    if args.input_csv.resolve() == args.output_json.resolve():\n        parser.error(\"Choose a different output file so the CSV is kept.\")\n    try:\n        rows, rejected = load_rows(args.input_csv)\n        for row in rows:\n            print(json.dumps(row, ensure_ascii=False))\n        args.output_json.write_text(json.dumps(rows, indent=2, ensure_ascii=False) + \"\\n\", encoding=\"utf-8\")\n    except (OSError, ValueError, csv.Error) as error:\n        parser.exit(1, f\"Could not process the file: {error}\\n\")\n    print(f\"Valid rows: {len(rows)}; rejected rows: {rejected}\")\n    print(f\"Saved to {args.output_json}\")\n    # Extend valid_row() with checks for your own fields, types or permitted values.\n    # Add filtering or calculations after load_rows(), before displaying and saving.\n\n\nif __name__ == \"__main__\":\n    main()\n",
+      "program_required_tags": [
+        "csv",
+        "json"
+      ],
+      "program_allowed_tags": [
+        "program",
+        "csv",
+        "json",
+        "file",
+        "reads",
+        "reading",
+        "load",
+        "loads",
+        "check",
+        "checks",
+        "missing",
+        "values",
+        "value",
+        "blank",
+        "cells",
+        "cell",
+        "show",
+        "shows",
+        "display",
+        "displays",
+        "valid",
+        "invalid",
+        "save",
+        "saves",
+        "saved",
+        "convert",
+        "conversion",
+        "them",
+        "as",
+        "dictionary",
+        "dictionaries",
+        "input",
+        "output",
+        "console",
+        "command",
+        "line",
+        "path",
+        "paths",
+        "reject",
+        "rejects",
+        "list",
+        "records",
+        "data",
+        "count",
+        "counts",
+        "report",
+        "accepted",
+        "rejected",
+        "empty",
+        "nonempty",
+        "trim",
+        "whitespace",
+        "standard",
+        "library",
+        "python",
+        "would",
+        "like",
+        "should",
+        "simple",
+        "small",
+        "basic",
+        "starter",
+        "validation",
+        "validate",
+        "validates",
+        "print",
+        "prints",
+        "process",
+        "processing",
+        "it",
+        "format",
+        "into",
+        "incomplete"
+      ]
+    },
+    {
+      "name": "json",
+      "languages": [
+        "Python"
+      ],
+      "description": "Read and write JSON records using the standard library.",
+      "tags": [
+        "json",
+        "data",
+        "records",
+        "configuration",
+        "serialise"
+      ],
+      "docs": "https://docs.python.org/3/library/json.html",
+      "install": "Included with Python",
+      "snippet": "import json\n\nrecord = {\"name\": \"OG Companion\", \"language\": \"Python\"}\nencoded = json.dumps(record, indent=2)\nprint(encoded)\nrestored = json.loads(encoded)\nassert restored[\"language\"] == \"Python\"\n# Add your own fields, then save the encoded text when the user chooses a file.\n"
+    },
+    {
+      "name": "pathlib",
+      "languages": [
+        "Python"
+      ],
+      "description": "Find files and work with portable filesystem paths.",
+      "tags": [
+        "file",
+        "folder",
+        "directory",
+        "paths",
+        "search",
+        "text"
+      ],
+      "docs": "https://docs.python.org/3/library/pathlib.html",
+      "install": "Included with Python",
+      "snippet": "from pathlib import Path\n\n# Choose a folder before searching it; this example only reads names.\nfolder = Path.cwd()\nfor path in folder.glob(\"*.py\"):\n    print(path.name)\n# Use rglob instead of glob if you want to include subfolders.\n"
+    },
+    {
+      "name": "sqlite3",
+      "languages": [
+        "Python"
+      ],
+      "description": "Store and query records in a local SQLite database.",
+      "tags": [
+        "database",
+        "sql",
+        "sqlite",
+        "records",
+        "storage"
+      ],
+      "docs": "https://docs.python.org/3/library/sqlite3.html",
+      "install": "Included with Python",
+      "snippet": "import sqlite3\n\nwith sqlite3.connect(\":memory:\") as database:\n    database.execute(\"CREATE TABLE journeys (name TEXT, destination TEXT)\")\n    # Parameters keep user values separate from SQL commands.\n    database.execute(\"INSERT INTO journeys VALUES (?, ?)\", (\"Rob Johnston\", \"Manchester\"))\n    for row in database.execute(\"SELECT name, destination FROM journeys\"):\n        print(row)\n# Replace :memory: with a chosen database path to retain records.\n"
+    },
+    {
+      "name": "datetime",
+      "languages": [
+        "Python"
+      ],
+      "description": "Compare full departure dates and apply an inclusive time limit.",
+      "tags": [
+        "date",
+        "time",
+        "minutes",
+        "difference",
+        "matching"
+      ],
+      "docs": "https://docs.python.org/3/library/datetime.html",
+      "install": "Included with Python",
+      "snippet": "from datetime import datetime, timedelta\n\ndriver = datetime.strptime(\"08/10/2026 09:15\", \"%d/%m/%Y %H:%M\")\nrider = datetime.strptime(\"08/10/2026 09:00\", \"%d/%m/%Y %H:%M\")\nmatches = abs(driver - rider) <= timedelta(minutes=15)\nprint(matches)\n# Keep the date as well as the time when a journey can cross midnight.\n"
+    },
+    {
+      "name": "re",
+      "languages": [
+        "Python"
+      ],
+      "description": "Find or validate text with regular expressions.",
+      "tags": [
+        "regex",
+        "text",
+        "pattern",
+        "validation",
+        "email"
+      ],
+      "docs": "https://docs.python.org/3/library/re.html",
+      "install": "Included with Python",
+      "snippet": "import re\n\ntext = \"Tickets: 3; price: 9.99\"\nprint(re.findall(r\"\\d+(?:\\.\\d+)?\", text))\n# Define the accepted format before using a pattern to validate user input.\n"
+    },
+    {
+      "name": "unittest",
+      "languages": [
+        "Python"
+      ],
+      "description": "Repeat assertions and check boundary behaviour.",
+      "tags": [
+        "test",
+        "testing",
+        "assertions",
+        "boundary",
+        "validation"
+      ],
+      "docs": "https://docs.python.org/3/library/unittest.html",
+      "install": "Included with Python",
+      "snippet": "import unittest\n\ndef ticket_total(quantity, price):\n    return quantity * price\n\nclass TicketTests(unittest.TestCase):\n    def test_three_tickets(self):\n        self.assertAlmostEqual(ticket_total(3, 9.99), 29.97, places=2)\n\nif __name__ == \"__main__\":\n    unittest.main()\n# Add zero, invalid input and agreed discount boundaries as separate tests.\n"
+    },
+    {
+      "name": "tkinter",
+      "languages": [
+        "Python"
+      ],
+      "description": "Build a small desktop interface using Python widgets.",
+      "tags": [
+        "gui",
+        "desktop",
+        "window",
+        "interface",
+        "button"
+      ],
+      "docs": "https://docs.python.org/3/library/tkinter.html",
+      "install": "Included when Python is installed with Tcl/Tk",
+      "snippet": "import tkinter as tk\nfrom tkinter import ttk\n\nroot = tk.Tk()\nroot.title(\"OG desktop example\")\nmessage = tk.StringVar(value=\"Ready\")\nttk.Label(root, textvariable=message).pack(padx=24, pady=16)\nttk.Button(root, text=\"Try it\", command=lambda: message.set(\"Button pressed\")).pack(pady=16)\nroot.mainloop()\n# Move business logic into its own functions as the interface grows.\n"
+    },
+    {
+      "name": "requests",
+      "languages": [
+        "Python"
+      ],
+      "description": "Make an HTTP request with a timeout and check its status.",
+      "tags": [
+        "http",
+        "web",
+        "internet",
+        "download",
+        "json",
+        "api"
+      ],
+      "docs": "https://requests.readthedocs.io/en/latest/user/quickstart/",
+      "install": "python -m pip install requests",
+      "snippet": "import requests\n\n# Use an endpoint you are authorised to access.\nresponse = requests.get(\"https://pypi.org/pypi/requests/json\", timeout=15)\nresponse.raise_for_status()\nmetadata = response.json()\nprint(metadata[\"info\"][\"name\"], metadata[\"info\"][\"version\"])\n# Handle requests.RequestException in your application to report connection failures.\n"
+    },
+    {
+      "name": "pandas",
+      "languages": [
+        "Python"
+      ],
+      "description": "Load CSV data, inspect columns and filter records.",
+      "tags": [
+        "csv",
+        "excel",
+        "spreadsheet",
+        "data",
+        "dataframe",
+        "table",
+        "analysis"
+      ],
+      "docs": "https://pandas.pydata.org/docs/user_guide/10min.html",
+      "install": "python -m pip install pandas",
+      "snippet": "import pandas as pd\n\njourneys = pd.DataFrame({\"driver\": [\"Alex Richards\", \"Gillian Drake\"], \"minutes\": [15, 16]})\nmatched = journeys.loc[journeys[\"minutes\"] <= 15]\nprint(matched)\n# Use pd.read_csv(your_path) for a real CSV, then validate the required columns.\n"
+    },
+    {
+      "name": "numpy",
+      "languages": [
+        "Python"
+      ],
+      "description": "Work with numerical arrays and vectorised calculations.",
+      "tags": [
+        "array",
+        "matrix",
+        "vector",
+        "maths",
+        "numerical",
+        "data"
+      ],
+      "docs": "https://numpy.org/doc/stable/user/absolute_beginners.html",
+      "install": "python -m pip install numpy",
+      "snippet": "import numpy as np\n\nprices = np.array([9.99, 7.50, 6.00])\nquantities = np.array([3, 2, 1])\ntotals = prices * quantities\nprint(totals)\nprint(totals.sum())\n# Check array shapes before combining inputs from another part of your program.\n"
+    },
+    {
+      "name": "matplotlib",
+      "languages": [
+        "Python"
+      ],
+      "description": "Plot values and label a chart clearly.",
+      "tags": [
+        "plot",
+        "chart",
+        "graph",
+        "visualisation",
+        "data"
+      ],
+      "docs": "https://matplotlib.org/stable/users/explain/quick_start.html",
+      "install": "python -m pip install matplotlib",
+      "snippet": "import matplotlib.pyplot as plt\n\nfigure, axes = plt.subplots()\naxes.plot([1, 2, 3, 4], [2, 5, 4, 7], marker=\"o\", color=\"#89e0a4\")\naxes.set(xlabel=\"Checkpoint\", ylabel=\"Completed checks\", title=\"OG project progress\")\nplt.show()\n# Replace the example values with measured results before reporting progress.\n"
+    },
+    {
+      "name": "Pillow",
+      "languages": [
+        "Python"
+      ],
+      "description": "Open an image and create a resized copy.",
+      "tags": [
+        "image",
+        "picture",
+        "resize",
+        "photo",
+        "thumbnail"
+      ],
+      "docs": "https://pillow.readthedocs.io/en/stable/handbook/tutorial.html",
+      "install": "python -m pip install Pillow",
+      "snippet": "from PIL import Image\n\n# Work on a copy; thumbnail preserves the aspect ratio.\nwith Image.open(\"input.png\") as source:\n    thumbnail = source.copy()\n    thumbnail.thumbnail((640, 640))\n    thumbnail.save(\"thumbnail.png\")\n# Let the user choose source and output paths in a desktop application.\n"
+    },
+    {
+      "name": "Flask",
+      "languages": [
+        "Python"
+      ],
+      "description": "Create a small web route returning JSON.",
+      "tags": [
+        "web",
+        "website",
+        "server",
+        "routes",
+        "http",
+        "api"
+      ],
+      "docs": "https://flask.palletsprojects.com/en/stable/quickstart/",
+      "install": "python -m pip install Flask",
+      "snippet": "from flask import Flask\n\napp = Flask(__name__)\n\n@app.get(\"/status\")\ndef status():\n    return {\"application\": \"OG example\", \"status\": \"ready\"}\n\nif __name__ == \"__main__\":\n    app.run(host=\"127.0.0.1\", port=5000)\n# This is a local development example; plan a production server before deployment.\n"
+    },
+    {
+      "name": "fetch",
+      "languages": [
+        "JavaScript",
+        "TypeScript"
+      ],
+      "description": "Fetch JSON using the runtime HTTP API.",
+      "tags": [
+        "http",
+        "web",
+        "json",
+        "api",
+        "fetch",
+        "download"
+      ],
+      "docs": "https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch",
+      "install": "Included in modern browsers and current Node.js",
+      "snippet": "async function loadMetadata() {\n  const response = await fetch(\"https://registry.npmjs.org/lodash/latest\");\n  if (!response.ok) throw new Error(`HTTP ${response.status}`);\n  const data = await response.json();\n  console.log(data.name, data.version);\n}\nloadMetadata().catch(console.error);\n// Replace the endpoint and validate the response fields your application uses.\n"
+    },
+    {
+      "name": "lodash",
+      "languages": [
+        "JavaScript",
+        "TypeScript"
+      ],
+      "description": "Group records by a shared property.",
+      "tags": [
+        "group",
+        "collection",
+        "array",
+        "records",
+        "data"
+      ],
+      "docs": "https://lodash.com/docs/",
+      "install": "npm install lodash",
+      "snippet": "const _ = require(\"lodash\");\n\nconst journeys = [{ driver: \"Alex\", destination: \"Manchester\" },\n                  { driver: \"Gillian\", destination: \"Manchester\" }];\nconsole.log(_.groupBy(journeys, \"destination\"));\n// This example uses CommonJS; adapt the import to your project's module system.\n"
+    },
+    {
+      "name": "express",
+      "languages": [
+        "JavaScript",
+        "TypeScript"
+      ],
+      "description": "Create a local HTTP route with Express.",
+      "tags": [
+        "web",
+        "server",
+        "routes",
+        "http",
+        "api",
+        "website"
+      ],
+      "docs": "https://expressjs.com/en/starter/hello-world.html",
+      "install": "npm install express",
+      "snippet": "const express = require(\"express\");\nconst app = express();\napp.get(\"/status\", (_request, response) => response.json({ status: \"ready\" }));\napp.listen(3000, \"127.0.0.1\", () => console.log(\"Local example on port 3000\"));\n// Add input validation and error handling as the routes grow.\n"
+    },
+    {
+      "name": "zod",
+      "languages": [
+        "TypeScript",
+        "JavaScript"
+      ],
+      "description": "Validate incoming records before using them.",
+      "tags": [
+        "validation",
+        "schema",
+        "types",
+        "json",
+        "records",
+        "data"
+      ],
+      "docs": "https://zod.dev/basics",
+      "install": "npm install zod",
+      "snippet": "import { z } from \"zod\";\n\nconst Journey = z.object({ driver: z.string().min(1), minutes: z.number().nonnegative() });\nconst result = Journey.safeParse({ driver: \"Rob Johnston\", minutes: 15 });\nif (result.success) console.log(result.data);\nelse console.error(result.error);\n// Extend the schema to match the actual fields accepted by your application.\n"
+    },
+    {
+      "name": "System.Text.Json",
+      "languages": [
+        "C#"
+      ],
+      "description": "Serialise an object to JSON with the .NET library.",
+      "tags": [
+        "json",
+        "serialise",
+        "data",
+        "records"
+      ],
+      "docs": "https://learn.microsoft.com/en-us/dotnet/standard/serialization/system-text-json/how-to",
+      "install": "Included with modern .NET",
+      "snippet": "using System;\nusing System.Text.Json;\n\nvar journey = new { Driver = \"Rob Johnston\", Destination = \"Manchester\" };\nConsole.WriteLine(JsonSerializer.Serialize(journey));\n// Use a named record or class when the same data crosses several methods.\n"
+    },
+    {
+      "name": "HttpClient",
+      "languages": [
+        "C#"
+      ],
+      "description": "Call an HTTP endpoint asynchronously.",
+      "tags": [
+        "http",
+        "json",
+        "web",
+        "api",
+        "fetch",
+        "download"
+      ],
+      "docs": "https://learn.microsoft.com/en-us/dotnet/fundamentals/networking/http/httpclient",
+      "install": "Included with .NET",
+      "snippet": "using System;\nusing System.Net.Http;\n\nusing var client = new HttpClient { Timeout = TimeSpan.FromSeconds(15) };\nvar response = await client.GetAsync(\"https://api.nuget.org/v3/index.json\");\nresponse.EnsureSuccessStatusCode();\nConsole.WriteLine(await response.Content.ReadAsStringAsync());\n// Reuse a managed client in a larger application rather than creating one per request.\n"
+    },
+    {
+      "name": "java.net.http",
+      "languages": [
+        "Java"
+      ],
+      "description": "Fetch text with the Java 11+ HTTP client.",
+      "tags": [
+        "http",
+        "web",
+        "api",
+        "fetch",
+        "download"
+      ],
+      "docs": "https://docs.oracle.com/en/java/javase/21/docs/api/java.net.http/java/net/http/HttpClient.html",
+      "install": "Included with Java 11+; this starter uses Java syntax",
+      "snippet": "import java.net.URI;\nimport java.net.http.*;\nimport java.time.Duration;\n\nclass Main {\n    public static void main(String[] args) throws Exception {\n        var request = HttpRequest.newBuilder(URI.create(\"https://example.com\"))\n                .timeout(Duration.ofSeconds(15)).GET().build();\n        var response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());\n        System.out.println(response.statusCode());\n    }\n}\n// Check the status and parse the body before using it as application data.\n"
+    },
+    {
+      "name": "serde_json",
+      "languages": [
+        "Rust"
+      ],
+      "description": "Parse a JSON value and read a named field.",
+      "tags": [
+        "json",
+        "serialise",
+        "data",
+        "records"
+      ],
+      "docs": "https://docs.rs/serde_json/latest/serde_json/",
+      "install": "cargo add serde_json",
+      "snippet": "fn main() -> Result<(), serde_json::Error> {\n    let text = r#\"{\"driver\":\"Rob Johnston\",\"minutes\":15}\"#;\n    let value: serde_json::Value = serde_json::from_str(text)?;\n    println!(\"{}\", value[\"driver\"]);\n    Ok(())\n}\n// Use a typed structure with serde when you know the accepted schema.\n"
+    },
+    {
+      "name": "encoding/json",
+      "languages": [
+        "Go"
+      ],
+      "description": "Decode JSON into a typed structure.",
+      "tags": [
+        "json",
+        "serialise",
+        "data",
+        "records"
+      ],
+      "docs": "https://pkg.go.dev/encoding/json",
+      "install": "Included with Go",
+      "snippet": "package main\n\nimport (\"encoding/json\"; \"fmt\")\ntype Journey struct { Driver string `json:\"driver\"`; Minutes int `json:\"minutes\"` }\nfunc main() {\n    var journey Journey\n    err := json.Unmarshal([]byte(`{\"driver\":\"Rob Johnston\",\"minutes\":15}`), &journey)\n    if err != nil { fmt.Println(err); return }\n    fmt.Println(journey.Driver)\n}\n// Validate the decoded values before adding the record to your application.\n"
+    },
+    {
+      "name": "json_encode",
+      "languages": [
+        "PHP"
+      ],
+      "description": "Convert an associative array to JSON.",
+      "tags": [
+        "json",
+        "serialise",
+        "data",
+        "records"
+      ],
+      "docs": "https://www.php.net/manual/en/function.json-encode.php",
+      "install": "Included with PHP",
+      "snippet": "<?php\n$journey = [\"driver\" => \"Rob Johnston\", \"minutes\" => 15];\necho json_encode($journey, JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR);\n// Decode and validate incoming data separately from producing an output response.\n"
+    },
+    {
+      "name": "JSON",
+      "languages": [
+        "Ruby"
+      ],
+      "description": "Encode and decode structured records.",
+      "tags": [
+        "json",
+        "serialise",
+        "data",
+        "records"
+      ],
+      "docs": "https://ruby-doc.org/stdlib-3.1.0/libdoc/json/rdoc/JSON.html",
+      "install": "Included with Ruby distributions that provide the json library",
+      "snippet": "require \"json\"\n\njourney = { driver: \"Rob Johnston\", minutes: 15 }\nencoded = JSON.pretty_generate(journey)\nputs encoded\nputs JSON.parse(encoded).fetch(\"driver\")\n# Extend the record, then validate required keys before using decoded input.\n"
+    },
+    {
+      "name": "std::vector",
+      "languages": [
+        "C++"
+      ],
+      "description": "Store values in a standard-library collection.",
+      "tags": [
+        "array",
+        "vector",
+        "collection",
+        "list",
+        "data"
+      ],
+      "docs": "https://en.cppreference.com/w/cpp/container/vector",
+      "install": "Included with C++",
+      "snippet": "#include <iostream>\n#include <vector>\n\nint main() {\n    std::vector<int> minutes{14, 15, 16};\n    for (int value : minutes) {\n        std::cout << value << \": \" << (value <= 15 ? \"match\" : \"no match\") << '\\n';\n    }\n}\n// Extend the values into journey objects once you have defined the required fields.\n"
+    },
+    {
+      "name": "SQLite",
+      "languages": [
+        "SQL"
+      ],
+      "description": "Define records and query them using SQL.",
+      "tags": [
+        "database",
+        "sql",
+        "sqlite",
+        "records",
+        "storage"
+      ],
+      "docs": "https://www.sqlite.org/lang.html",
+      "install": "Use an SQLite database client",
+      "snippet": "CREATE TABLE journeys (driver TEXT NOT NULL, minutes INTEGER NOT NULL);\nINSERT INTO journeys VALUES ('Rob Johnston', 15), ('Gillian Drake', 16);\nSELECT driver, minutes FROM journeys WHERE minutes <= 15;\n-- Run this in a new example database before adapting it to an existing schema.\n"
+    },
+    {
+      "name": "ConvertFrom-Json",
+      "languages": [
+        "PowerShell"
+      ],
+      "description": "Read a JSON string into a PowerShell object.",
+      "tags": [
+        "json",
+        "serialise",
+        "data",
+        "records",
+        "shell"
+      ],
+      "docs": "https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/convertfrom-json",
+      "install": "Included with PowerShell",
+      "snippet": "$record = '{\"driver\":\"Rob Johnston\",\"minutes\":15}' | ConvertFrom-Json\n$record.driver\nif ($record.minutes -le 15) { 'Match found' }\n# Read from a chosen file with Get-Content -Raw when you are ready to use stored records.\n"
+    },
+    {
+      "name": "read",
+      "languages": [
+        "Bash"
+      ],
+      "description": "Read text lines without interpreting backslashes.",
+      "tags": [
+        "text",
+        "file",
+        "lines",
+        "shell",
+        "csv"
+      ],
+      "docs": "https://www.gnu.org/software/bash/manual/bash.html",
+      "install": "Included with Bash",
+      "snippet": "#!/usr/bin/env bash\nwhile IFS= read -r line || [[ -n \"$line\" ]]; do\n    printf '%s\n' \"$line\"\ndone < \"input.txt\"\n# This reads lines; use a CSV parser if fields can contain quoted commas or newlines.\n"
+    },
+    {
+      "name": "read.csv",
+      "languages": [
+        "R"
+      ],
+      "description": "Load CSV data into a data frame.",
+      "tags": [
+        "csv",
+        "spreadsheet",
+        "data",
+        "dataframe",
+        "table",
+        "analysis"
+      ],
+      "docs": "https://stat.ethz.ch/R-manual/R-devel/library/utils/html/read.table.html",
+      "install": "Included with R",
+      "snippet": "journeys <- read.csv(\"journeys.csv\", stringsAsFactors = FALSE)\nprint(head(journeys))\n# Check column names and missing values before calculating or filtering results.\n"
+    }
+  ]
+}

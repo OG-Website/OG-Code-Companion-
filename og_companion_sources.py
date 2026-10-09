@@ -1,0 +1,321 @@
+"""Public documentation, repository examples and on-demand documentation indexes.
+
+Content is reference data: nothing downloaded here is installed or executed.
+"""
+from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime, timezone
+from hashlib import sha256
+from html import unescape
+from html.parser import HTMLParser
+import ipaddress
+import json
+from pathlib import Path
+import re
+import socket
+import tempfile
+import time
+from urllib.parse import quote, urlencode, urlparse, urljoin
+from urllib.request import Request, HTTPRedirectHandler, build_opener
+
+from og_companion_search import BASE, fetch_json, package_result, tokens
+
+ALIASES = {'py': 'Python', 'python': 'Python', 'python3': 'Python', 'pycon': 'Python',
+           'js': 'JavaScript', 'javascript': 'JavaScript', 'jsx': 'JavaScript',
+           'ts': 'TypeScript', 'typescript': 'TypeScript', 'tsx': 'TypeScript',
+           'cs': 'C#', 'csharp': 'C#', 'c#': 'C#', 'fsharp': 'F#',
+           'java': 'Java', 'kotlin': 'Kotlin', 'scala': 'Scala', 'rs': 'Rust', 'rust': 'Rust',
+           'php': 'PHP', 'rb': 'Ruby', 'ruby': 'Ruby', 'go': 'Go', 'golang': 'Go',
+           'cpp': 'C++', 'c++': 'C++', 'c': 'C', 'sql': 'SQL', 'sh': 'Bash',
+           'bash': 'Bash', 'shell': 'Bash', 'powershell': 'PowerShell', 'ps1': 'PowerShell',
+           'r': 'R', 'swift': 'Swift', 'dart': 'Dart', 'html': 'HTML / CSS', 'css': 'HTML / CSS',
+           'json': 'JSON', 'yaml': 'YAML', 'yml': 'YAML', 'console': 'Console', 'text': 'Text',
+           'toml': 'TOML', 'xml': 'XML', 'ini': 'INI', 'http': 'HTTP'}
+DOC_DEFAULTS = {'Python': 'python~3.14', 'JavaScript': 'javascript', 'TypeScript': 'typescript',
+                'C#': 'dotnet', 'F#': 'dotnet', 'Java': 'openjdk~21', 'Kotlin': 'kotlin~2.2',
+                'Scala': 'scala~2.13', 'Rust': 'rust', 'PHP': 'php', 'Ruby': 'ruby~3.4',
+                'Go': 'go', 'C++': 'cpp', 'C': 'c', 'SQL': 'sqlite', 'Bash': 'bash',
+                'PowerShell': 'powershell', 'R': 'r', 'Swift': 'swift', 'Dart': 'dart',
+                'HTML / CSS': 'html'}
+
+
+def public_url(url, *, resolve=True):
+    """Only public HTTPS pages, including every redirect, can be retrieved."""
+    parsed = urlparse(url)
+    if parsed.scheme != 'https' or not parsed.hostname or parsed.username or parsed.password or parsed.port not in (None, 443):
+        raise ValueError('Use a public HTTPS documentation or repository URL.')
+    host = parsed.hostname.casefold()
+    if host == 'localhost' or host.endswith(('.localhost', '.local', '.internal')):
+        raise ValueError('Local and private addresses cannot be used as documentation sources.')
+    try:
+        addresses = [ipaddress.ip_address(host)]
+    except ValueError:
+        addresses = [ipaddress.ip_address(row[4][0]) for row in socket.getaddrinfo(host, 443, type=socket.SOCK_STREAM)] if resolve else []
+    if any(not address.is_global for address in addresses):
+        raise ValueError('Local and private addresses cannot be used as documentation sources.')
+    return url
+
+
+class PublicRedirects(HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        public_url(newurl)
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
+
+
+def fetch_text(url, *, limit=8_000_000):
+    public_url(url)
+    request = Request(url, headers={'User-Agent': 'OG-Companion/2.0 (documentation browser)',
+                                   'Accept': 'text/html,text/plain,application/json'})
+    with build_opener(PublicRedirects()).open(request, timeout=25) as response:
+        content_type = response.headers.get_content_type()
+        if content_type not in ('text/html', 'text/plain', 'application/json', 'application/octet-stream', 'text/markdown'):
+            raise ValueError('This address does not supply text documentation.')
+        raw = response.read(limit + 1)
+        encoding = response.headers.get_content_charset() or 'utf-8'
+        final_url = response.url
+    if len(raw) > limit:
+        raise ValueError('The document is too large. Open a specific documentation page instead.')
+    return raw.decode(encoding, errors='replace'), final_url, content_type
+
+
+def cached_document(url, *, online=True, cache_dir=None):
+    folder = Path(cache_dir) if cache_dir else Path.home() / '.og-companion' / 'documents'
+    file = folder / (sha256(url.encode()).hexdigest() + '.json')
+    cached = None
+    if file.exists():
+        try:
+            cached = json.loads(file.read_text(encoding='utf-8'))
+            if not isinstance(cached.get('text'), str): cached = None
+        except (OSError, ValueError): pass
+    if cached and (not online or time.time() - cached['fetched_at'] < 86400):
+        return cached['text'], cached['url'], cached['type'], 'Cached document'
+    if not online:
+        raise RuntimeError('This document is not cached yet. Enable online access to load it once.')
+    try:
+        text, final_url, content_type = fetch_text(url)
+    except (OSError, ValueError):
+        if cached: return cached['text'], cached['url'], cached['type'], 'Offline cached document'
+        raise
+    folder.mkdir(parents=True, exist_ok=True)
+    with tempfile.NamedTemporaryFile(mode='w', encoding='utf-8', dir=folder, delete=False, suffix='.tmp') as stream:
+        json.dump({'text': text, 'url': final_url, 'type': content_type, 'fetched_at': time.time()}, stream)
+        temporary=Path(stream.name)
+    try: temporary.replace(file)
+    finally: temporary.unlink(missing_ok=True)
+    return text, final_url, content_type, 'Live document'
+
+
+class CodeHTML(HTMLParser):
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self.blocks = []; self.parts = []; self.depth = 0
+        self.language = ''; self.heading = ''; self.heading_parts = None
+    def handle_starttag(self, tag, attrs):
+        attrs = dict(attrs)
+        if re.fullmatch('h[1-6]', tag) and not self.depth: self.heading_parts = []
+        if tag == 'pre':
+            if not self.depth: self.parts = []; self.language = attrs.get('data-language', '')
+            self.depth += 1
+        if self.depth:
+            classes = attrs.get('class', '')
+            match = re.search(r'(?:language-|lang-|highlight\s+)([\w+#-]+)', classes)
+            if match: self.language = match[1]
+            self.language = attrs.get('data-language', self.language)
+            if tag == 'br': self.parts.append('\n')
+    def handle_endtag(self, tag):
+        if re.fullmatch('h[1-6]', tag) and self.heading_parts is not None:
+            self.heading = ''.join(self.heading_parts).strip(); self.heading_parts = None
+        if tag == 'pre' and self.depth:
+            self.depth -= 1
+            if not self.depth:
+                self.blocks.append((self.heading, self.language, ''.join(self.parts).strip()))
+    def handle_data(self, data):
+        if self.depth: self.parts.append(data)
+        if self.heading_parts is not None: self.heading_parts.append(data)
+
+
+def infer_language(code, default):
+    if re.search(r'^\s*(?:>>> |from \w+ import |def \w+\(|import (?:os|sys|re|json|numpy|pandas))', code, re.M): return 'Python'
+    if re.search(r'^\s*(?:npm |pip |python -m pip|cargo |gem |composer |\$ )', code, re.M): return 'Bash'
+    if re.search(r'\b(?:require\(|console\.log\()', code): return 'JavaScript'
+    return default
+
+
+def extract_examples(text, url, language, *, attribution='', licence='See source terms'):
+    """Return every code block in the loaded page, retaining its provenance."""
+    raw = []
+    if '<pre' in text.casefold():
+        parser = CodeHTML(); parser.feed(text); raw.extend(parser.blocks)
+    else:
+        fence = re.compile(r'^\s*(`{3,}|~{3,})([^\n]*)\n(.*?)^\s*\1\s*$', re.M | re.S)
+        for match in fence.finditer(text):
+            headings = re.findall(r'^#{1,6}\s+(.+)$', text[:match.start()], re.M)
+            raw.append((headings[-1] if headings else 'Example', match[2].strip().split(' ')[0], match[3].strip()))
+        if not raw:
+            # reStructuredText is used in many PyPI descriptions.
+            for match in re.finditer(r'^\.\. code(?:-block)?::\s*(\w*)\s*\n((?:[ \t]+[^\n]*\n|\n)+)', text, re.M):
+                import textwrap
+                raw.append(('Example', match[1], textwrap.dedent(match[2]).strip()))
+    rows = []; seen = set()
+    for title, hint, code in raw:
+        if not code or code in seen: continue
+        seen.add(code)
+        hint=hint.split(',')[0].strip('{}.')
+        actual_language = ALIASES.get(hint.casefold(), hint or infer_language(code, language))
+        # Interactive prompts and printed results stay visible as transcript examples.
+        if re.search(r'^>>> ', code, re.M): actual_language = 'Python transcript'
+        rows.append({'title': f'{len(rows)+1}. {title[:95] or "Example"}', 'code': code,
+                     'language': actual_language, 'url': url, 'attribution': attribution,
+                     'licence': licence, 'retrieved_at': datetime.now(timezone.utc).isoformat()})
+    return rows
+
+
+def documentation_catalogue(online=True):
+    try:
+        text, _, _, _ = cached_document('https://devdocs.io/docs.json', online=online)
+        data = json.loads(text)
+    except (OSError, ValueError, RuntimeError):
+        data = json.loads((BASE / 'og_companion_assets' / 'documentation-index.json').read_text(encoding='utf-8'))
+    return [row for row in data if re.fullmatch(r'[a-zA-Z0-9_.~+-]+', row['slug'])]
+
+
+def documentation_language(docset, fallback='Text'):
+    family=docset['slug'].split('~')[0]
+    if family in ('python','numpy','pandas','scipy','scikit-learn','django','flask','tensorflow','pytorch','sphinx','matplotlib','seaborn','statsmodels'):return 'Python'
+    if family in ('javascript','node','express','react','react_native','vue','vueuse','angular','jquery','lodash','underscore','nextjs','svelte','d3','moment','rxjs','backbone'):return 'JavaScript'
+    if family in ('sqlite','mysql','mariadb','postgresql'):return 'SQL'
+    if family=='cpp':return 'C++'
+    if family.startswith('openjdk'):return 'Java'
+    if family=='dotnet':return 'C#'
+    return ALIASES.get(family,fallback)
+
+
+def documentation_search(docset, query='', *, page=1, online=True, page_size=100, language=None):
+    slug = docset['slug']
+    if not re.fullmatch(r'[a-zA-Z0-9_.~+-]+', slug): raise ValueError('Invalid documentation edition.')
+    url = 'https://documents.devdocs.io/' + quote(slug) + '/index.json?' + str(docset.get('mtime', ''))
+    text, _, _, cache_status = cached_document(url, online=online)
+    entries = json.loads(text)['entries']; words = tokens(query)
+    ranked = []
+    for item in entries:
+        name = item['name'].casefold(); hay = name + ' ' + item.get('type', '').casefold()
+        score = sum(5 if word in name else 1 for word in words if word in hay)
+        if not words or score:
+            ranked.append((score, item))
+    ranked.sort(key=lambda pair: (-pair[0], pair[1]['name'].casefold()))
+    rows = []
+    for _, item in ranked[(page-1)*page_size:page*page_size]:
+        row = package_result(item['name'], documentation_language(docset,language or docset['name']),
+                             'DevDocs', item.get('type','')+' · '+docset['name'], docset.get('version') or 'Current edition',
+                             'https://devdocs.io/'+quote(slug)+'/'+item['path'], 'See library documentation')
+        row.update(docset=docset, path=item['path'], attribution=unescape(re.sub('<[^>]+>', ' ', docset.get('attribution',''))).strip())
+        rows.append(row)
+    return rows, f'DevDocs · {docset["name"]} {docset.get("version", "")} · {len(ranked):,} matching API topics · page {page} · {cache_status}'
+
+
+def github_search(query, language, *, page=1):
+    lang = {'HTML / CSS':'HTML', 'Bash':'Shell'}.get(language, language)
+    meaningful = ' '.join(sorted(tokens(query))) or query.strip()
+    data = fetch_json('https://api.github.com/search/repositories?' + urlencode(
+        {'q': meaningful+' language:"'+lang+'" archived:false', 'per_page':50, 'page':page}))
+    rows = []
+    for repo in data['items']:
+        row = package_result(repo['full_name'], language, 'GitHub', repo.get('description'),
+                             repo.get('updated_at','')[:10], repo['html_url'], 'See repository documentation')
+        row.update(repository=repo['html_url'], licence=(repo.get('license') or {}).get('spdx_id') or 'See repository licence')
+        rows.append(row)
+    return rows, f'GitHub · {data["total_count"]:,} matching public repositories · page {page} (provider search limits apply)'
+
+
+def github_repo(url):
+    parsed = urlparse(url.replace('git+https://','https://').removesuffix('.git'))
+    if parsed.hostname not in ('github.com','www.github.com'): return None
+    parts = parsed.path.strip('/').split('/')
+    if len(parts)>=2 and all(re.fullmatch(r'[\w.-]+', part) for part in parts[:2]): return '/'.join(parts[:2])
+    return None
+
+
+def repository_readme(url, online=True):
+    repo = github_repo(url)
+    if not repo: return None
+    api = 'https://api.github.com/repos/'+repo+'/readme'
+    text, _, _, _ = cached_document(api, online=online)
+    data = json.loads(text)
+    if not data.get('download_url'): return None
+    # The raw file avoids executable scripts and navigation noise in GitHub HTML.
+    text, _, _, _ = cached_document(data['download_url'], online=online)
+    return text, data['html_url']
+
+
+def library_examples(entry, *, online=True):
+    """Read source examples from arbitrary selected packages, not just supplied entries."""
+    language = entry['language']; blocks = []; issues = []; documents = []; licence = entry.get('licence','See source terms')
+    if entry['source']=='DevDocs':
+        slug = entry['docset']['slug']; path = entry['path'].split('#')[0]
+        if '..' in path.split('/') or urlparse(path).scheme: raise ValueError('Invalid documentation path.')
+        url = 'https://documents.devdocs.io/'+quote(slug)+'/'+quote(path,safe='/')+'.html'
+        text, _, _, status = cached_document(url, online=online)
+        rows = extract_examples(text, entry['docs'], language, attribution=entry.get('attribution','DevDocs'), licence=entry.get('attribution','See documentation terms'))
+        return rows, status+' · DevDocs · '+str(len(rows))+' code examples from this topic'
+    if entry.get('snippet'):
+        blocks.append({'title':'Supplied offline example', 'code':entry['snippet'], 'language':language,
+                       'url':entry['docs'], 'attribution':'OG Companion teaching example', 'licence':'OG Web.site teaching example'})
+    if entry['source']=='PyPI':
+        api = 'https://pypi.org/pypi/'+quote(entry['name'],safe='')+'/json'
+        try:
+            text, _, _, _ = cached_document(api, online=online); info=json.loads(text)['info']
+            licence = info.get('license_expression') or info.get('license') or licence
+            licence = licence[:200]
+            blocks.extend(extract_examples(info.get('description',''), entry['registry_url'], language, licence=licence))
+            urls = info.get('project_urls') or {}
+            documents += [v for k,v in urls.items() if any(word in k.casefold() for word in ('source','repo','doc','homepage'))]
+        except (OSError,ValueError,RuntimeError,KeyError) as error: issues.append(str(error))
+    elif entry['source']=='npm':
+        try:
+            text, _, _, _ = cached_document('https://registry.npmjs.org/'+quote(entry['name'],safe='@'), online=online)
+            info=json.loads(text); licence=info.get('license') or licence
+            if not isinstance(licence,str): licence=str(licence)
+            blocks.extend(extract_examples(info.get('readme',''), entry['registry_url'], language, licence=licence))
+            repo=info.get('repository') or {}; repo=repo.get('url') if isinstance(repo,dict) else repo
+            if repo: documents.append(repo)
+        except (OSError,ValueError,RuntimeError,KeyError) as error: issues.append(str(error))
+    elif entry['source']=='crates.io':
+        try:
+            text, _, _, _ = cached_document('https://crates.io/api/v1/crates/'+quote(entry['name']),online=online)
+            info=json.loads(text)['crate']
+            if info.get('repository'): documents.append(info['repository'])
+        except (OSError,ValueError,RuntimeError,KeyError) as error: issues.append(str(error))
+    elif entry['source']=='RubyGems':
+        try:
+            text, _, _, _ = cached_document('https://rubygems.org/api/v1/gems/'+quote(entry['name'])+'.json',online=online)
+            info=json.loads(text)
+            documents += [info[key] for key in ('source_code_uri','documentation_uri','homepage_uri') if info.get(key)]
+            licence=', '.join(info.get('licenses') or []) or licence
+        except (OSError,ValueError,RuntimeError,KeyError) as error: issues.append(str(error))
+    documents += [entry.get('repository'),entry.get('docs')]
+    documents = list(dict.fromkeys(str(url) for url in documents if url))[:4]
+    def read(url):
+        try:
+            readme = repository_readme(url,online)
+            if readme: text,source = readme
+            else: text,source,_,_ = cached_document(url,online=online)
+            return extract_examples(text,source,language,licence=licence),''
+        except (OSError,ValueError,RuntimeError,KeyError) as error: return [],str(error)
+    with ThreadPoolExecutor(max_workers=3) as workers:
+        for rows,error in workers.map(read,documents):
+            blocks.extend(rows)
+            if error: issues.append(error)
+    seen=set();unique=[]
+    for block in blocks:
+        if block['code'] not in seen: seen.add(block['code']);unique.append(block)
+    status=f'{len(unique)} source examples · '+('online or cached documentation' if online else 'cached/offline documentation')
+    if issues: status += ' · '+str(len(issues))+' source(s) unavailable'
+    return unique,status
+
+
+def url_examples(url, language, *, online=True):
+    public_url(url,resolve=online)
+    readme = repository_readme(url,online)
+    if readme: text,source=readme
+    else: text,source,_,_=cached_document(url,online=online)
+    examples=extract_examples(text,source,language)
+    return examples, f'{len(examples)} code examples from the supplied source'

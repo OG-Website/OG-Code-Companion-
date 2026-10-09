@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+.build/
+dist/
+build/
+OG Runtime/
+OG Companion.exe
+OG Companion.zip
+*.spec
+.venv/
+.env
+.env.*
