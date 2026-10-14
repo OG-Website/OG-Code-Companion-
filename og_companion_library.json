@@ -115,24 +115,6 @@
       "snippet": "import json\n\nrecord = {\"name\": \"OG Companion\", \"language\": \"Python\"}\nencoded = json.dumps(record, indent=2)\nprint(encoded)\nrestored = json.loads(encoded)\nassert restored[\"language\"] == \"Python\"\n# Add your own fields, then save the encoded text when the user chooses a file.\n"
     },
     {
-      "name": "pathlib",
-      "languages": [
-        "Python"
-      ],
-      "description": "Find files and work with portable filesystem paths.",
-      "tags": [
-        "file",
-        "folder",
-        "directory",
-        "paths",
-        "search",
-        "text"
-      ],
-      "docs": "https://docs.python.org/3/library/pathlib.html",
-      "install": "Included with Python",
-      "snippet": "from pathlib import Path\n\n# Choose a folder before searching it; this example only reads names.\nfolder = Path.cwd()\nfor path in folder.glob(\"*.py\"):\n    print(path.name)\n# Use rglob instead of glob if you want to include subfolders.\n"
-    },
-    {
       "name": "sqlite3",
       "languages": [
         "Python"
@@ -599,6 +581,43 @@
       "docs": "https://stat.ethz.ch/R-manual/R-devel/library/utils/html/read.table.html",
       "install": "Included with R",
       "snippet": "journeys <- read.csv(\"journeys.csv\", stringsAsFactors = FALSE)\nprint(head(journeys))\n# Check column names and missing values before calculating or filtering results.\n"
+    },
+    {
+      "name": "hashlib",
+      "languages": [
+        "Python"
+      ],
+      "description": "Calculate SHA-256 hashes to detect local file changes. A hash does not establish that a file is safe.",
+      "tags": [
+        "security",
+        "cybersecurity",
+        "hash",
+        "integrity",
+        "file",
+        "validation"
+      ],
+      "docs": "https://docs.python.org/3/library/hashlib.html",
+      "install": "Included with Python",
+      "snippet": "import hashlib\nfrom pathlib import Path\n\npath = Path('example.txt')\nwith path.open('rb') as stream:\n    digest = hashlib.file_digest(stream, 'sha256')\nprint(digest.hexdigest())\n# Compare against a trusted baseline to detect changes.\n",
+      "program": "# Local file integrity starter — OG Companion\n# Run: python integrity.py baseline YOUR_FOLDER manifest.json\n# Check later: python integrity.py check YOUR_FOLDER manifest.json\n# Use folders you own. Hashes report changes, not malware or file safety.\nimport argparse\nimport hashlib\nimport json\nfrom pathlib import Path\n\n\ndef file_hash(path):\n    digest = hashlib.sha256()\n    with path.open('rb') as stream:\n        for block in iter(lambda: stream.read(65536), b''):\n            digest.update(block)\n    return digest.hexdigest()\n\n\ndef snapshot(folder, manifest):\n    hashes, errors = {}, {}\n    for path in sorted(folder.rglob('*')):\n        if path.is_symlink() or manifest == path.resolve():\n            continue\n        try:\n            if path.is_file() and path.resolve().is_relative_to(folder):\n                hashes[path.relative_to(folder).as_posix()] = file_hash(path)\n        except OSError as error:\n            errors[str(path)] = str(error)\n    return hashes, errors\n\n\ndef compare(before, after):\n    return {\n        'added': sorted(after.keys() - before.keys()),\n        'removed': sorted(before.keys() - after.keys()),\n        'changed': sorted(name for name in before.keys() & after.keys() if before[name] != after[name]),\n    }\n\n\ndef main():\n    parser = argparse.ArgumentParser(description='Record and compare local file hashes.')\n    parser.add_argument('action', choices=('baseline', 'check'))\n    parser.add_argument('folder', type=Path)\n    parser.add_argument('manifest', type=Path)\n    args = parser.parse_args()\n    folder, manifest = args.folder.resolve(), args.manifest.resolve()\n    if not folder.is_dir():\n        parser.error('Choose an existing folder.')\n    try:\n        hashes, errors = snapshot(folder, manifest)\n        if args.action == 'baseline':\n            # Never silently replace a trusted baseline.\n            with manifest.open('x', encoding='utf-8') as target:\n                json.dump({'root': str(folder), 'hashes': hashes}, target, indent=2)\n            print(f'Saved {len(hashes)} file hashes to {manifest}')\n        else:\n            before = json.loads(manifest.read_text(encoding='utf-8'))\n            if before['root'] != str(folder) or not isinstance(before['hashes'], dict):\n                raise ValueError('This manifest belongs to a different folder or has invalid hashes.')\n            result = compare(before['hashes'], hashes)\n            print(json.dumps(result, indent=2))\n            if any(result.values()):\n                print('Changes found. Review these files before accepting a new baseline.')\n        if errors:\n            print('Some files could not be read: ' + json.dumps(errors, indent=2))\n            return 2\n        return 0\n    except (OSError, ValueError, KeyError, TypeError) as error:\n        print(f'Could not complete the integrity check: {error}')\n        return 1\n\n\nif __name__ == '__main__':\n    raise SystemExit(main())\n",
+      "program_intent": "file-integrity"
+    },
+    {
+      "name": "pathlib",
+      "languages": [
+        "Python"
+      ],
+      "description": "Choose, inspect and traverse local file paths. Validate the selected folder and handle access errors.",
+      "tags": [
+        "file",
+        "path",
+        "folder",
+        "security",
+        "validation"
+      ],
+      "docs": "https://docs.python.org/3/library/pathlib.html",
+      "install": "Included with Python",
+      "snippet": "from pathlib import Path\n\nfolder = Path('my-files').resolve()\nif not folder.is_dir():\n    raise ValueError('Choose an existing folder.')\nfor path in folder.rglob('*'):\n    if path.is_file() and not path.is_symlink():\n        print(path.relative_to(folder))\n"
     }
   ]
 }

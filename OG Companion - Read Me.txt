@@ -1,189 +1,35 @@
-OG COMPANION 2.1.0
-OG Web.site | Library discovery, live code examples and a program workbench
+OG Companion 2.2 — OG Web.site
+Rob Johnston | 14/10/2026
 
-START THE APPLICATION
+Open OG Companion.exe or Start OG Companion.cmd. Keep the complete folder together when sharing it. The Windows package includes Python and the Qt desktop runtime; recipients do not need to install Python to open the app.
 
-Extract OG Companion.zip. Open the OG Companion folder and double-click
-OG Companion.exe or Start OG Companion.cmd. Python and Tcl/Tk are included.
-Keep the whole folder together when copying it to a drive or sending it.
+BUILD CODE
+Choose a language, type what you want to build and select Get starter code / Update. The Code tab contains editable source; How to build it explains the approach and next steps. Supported CSV-to-JSON and local file-integrity starters work without AI. Other matching requests can show a reference snippet or retrieve real documentation examples. A connected local model supplies custom programs and updates.
 
-CHECKED CONTENT COUNTS - 08/10/2026
+For example, enter: cybersecurity, file libraries, security considerations. The supplied Python starter creates a SHA-256 file manifest and compares later file changes. It handles local files; it is not a malware detector. Its comments explain how to run it and the guidance explains what the operations do.
 
-Included offline: 30 teaching library entries and 30 editable teaching snippets
-across 14 languages, plus one complete CSV-to-JSON program foundation.
+Edit code directly, copy it or save it. Changing the description and choosing Update includes your current code. Expand code requests another useful addition, and Undo update restores the preceding source. New request clears the search and description while retaining code. Clear code asks before discarding unsaved work. Ctrl+Enter starts a build; Ctrl+S saves source.
 
-Documentation browser: 244 distinct documentation collection titles across
-837 editions. The editions include different versions. They are NOT 837 unique
-libraries: collection titles also include languages, frameworks and tools.
-The edition manifest is in the folder; topic indexes and code pages load on
-demand. The complete collection-title list is in
-og_companion_assets\content-inventory.json.
+BROWSE LIBRARIES
+Choose Packages, Documentation or GitHub and enter an exact library name or task keywords. The documentation selector includes 244 collection titles across 837 editions. All API topics browses an edition; Previous and Next reach further results. Select a library and choose Get code examples, or double-click it. The chosen example opens in Build code. Complete collection loads all available distinct blocks from an edition. Load source URL retrieves another public HTTPS documentation page, raw source file or repository. Save all examples exports code with its references and licence details.
 
-Python package discovery: 909,023 names in the full PyPI index verified on
-08/10/2026. These are searchable published package names, NOT installed
-libraries, bundled code snippets or 909,023 complete working programs. The
-index is downloaded to each recipient's cache and is not inside this ZIP.
+Seven package-registry adapters cover PyPI, npm, NuGet, Maven Central, crates.io, Packagist and RubyGems. The language/tool selector has 22 choices, including CMake. Other languages can use documentation and public source discovery. There is no fixed global snippet total: providers and individual pages determine available examples.
 
-The selector has 21 languages. Seven package-registry connectors cover 11
-of them directly; the other selections use public repository discovery.
-Documentation and public source URLs are additional discovery routes.
+LOCAL MODELS
+Refresh models discovers running Ollama services, LM Studio and compatible localhost APIs, including recognised Windows service processes using non-default ports. Select your own model from the full table, then Connect selected model. Nothing connects automatically. Add service URL supports another localhost base URL; it is saved in that user's profile. Service token supports an authenticated service for the current session only. No token or model weights are included in the shared folder.
 
-Live code-block checks outside the bundled teaching catalogue:
-httpx 6; Rich 19; Polars 2; Axios 105; Commander 67; Tokio 9.
-Python CSV documentation 16; a Go API page 204; JavaScript Date.toJSON 4;
-the public Gin repository README 3.
-These are distinct blocks per checked source, including examples, commands,
-configuration, transcripts and API declarations. They are not all complete
-programs, and retrieving them does not establish that they have been executed.
+Ollama lists installed models. LM Studio's native model APIs include downloaded and loaded models; code generation needs a language model, so embedding models are identified and rejected for that action. Connecting a downloaded model through the supported LM Studio native API loads that selected model. A generic compatible API exposes the models its server makes available. Start the recipient's own service to use its models; OG Companion does not directly open arbitrary model-weight files without a serving runtime.
 
-The total number of snippets across every online source has NOT been measured.
-The application shows the actual number loaded for your selected library/page.
-It retains all distinct blocks it extracts there, with no 30-example ceiling.
-Live counts can change; the included inventory records the checked snapshot.
+LIBRARIES WITHOUT AI
+The package supplies 31 teaching snippets across 14 languages, two complete Python foundations and 14 licensed documentation collections containing 84,512 summed source blocks. These blocks include configuration, commands and transcripts, rather than 84,512 complete programs. The collections and source licence files are included. Cached and supplied examples remain available with Online sources switched off. Uncached remote material needs internet access. AI is optional for browsing, source retrieval, editing, copying and saving.
 
-EXPLORE WHAT YOU WANT TO BUILD
+CHECKS AND LIMITS
+The 2.2 source passed 106 automated checks on 14/10/2026. The Windows executable passed its offline installation check, including both foundations, three tabs, clearing and undo. The circular background and controls were inspected at 1280 x 720 and 960 x 700 logical sizes. Local model quality varies: syntax and update checks do not prove every requirement. A rejected response retains your code. Test saved source against its intended inputs and output.
 
-Choose a language and describe your inputs, features and expected outputs.
-Find libraries uses that description, or the optional keyword field above
-the results. Short terms such as CSV, httpx, image, JSON or SQLite make
-discovery more precise. You can enter any package name, not just a supplied
-example. Python discovery searches the full downloaded PyPI name index.
-
-The source menu offers Packages, Documentation and GitHub. Packages uses
-PyPI, npm, NuGet, Maven Central, crates.io, Packagist or RubyGems where a
-connector exists; other languages use public GitHub repository discovery.
-GitHub mode explicitly searches public repositories for the chosen language.
-Previous results and Next results browse further pages. A page size is not
-a limit on the total collection: external providers have their own search
-limits, rate limits and availability.
-
-BROWSE THE DOCUMENTATION AND ITS CODE
-
-Choose Documentation and an edition from the menu beside it. The supplied
-manifest contains 837 published DevDocs editions, including language
-references and third-party libraries. Refresh documentation checks for
-updated editions. Edition metadata is provided by DevDocs; it doesn't
-establish which version of a library is installed on your computer.
-
-Search API topics using the keyword field, or click All API topics to browse
-the complete index of that edition. Select a topic and click Get code examples.
-The examples selector above the workbench lists every distinct code block
-found on the loaded page. Switch between them and edit the one you want.
-There is no fixed total of 30 available snippets.
-
-For a package result, Get code examples reads its registry description,
-README and available documentation sources. Code, commands, configuration
-and interactive transcripts keep separate language labels. Some examples
-depend on surrounding documentation or earlier definitions; a transcript
-includes displayed output and isn't an executable Python script.
-
-Load source URL accepts another public HTTPS documentation page, a raw README
-or a public GitHub repository. This also works for libraries absent from a
-registry connector or the documentation catalogue. A page needs readable
-code blocks. Sites requiring sign-in or client-side rendering may not supply
-them; choose a specific usage page or public raw README instead.
-
-Code examples show their source address. Save all examples exports the
-complete loaded collection as JSON, including code, language, source and
-licence/attribution details. Source terms still apply to third-party code.
-DevDocs documentation is provided by freeCodeCamp at https://devdocs.io;
-individual documentation retains its original copyright and licence.
-
-EDIT AND SAVE
-
-Edit in the workbench, then Copy code or Save code. Undo and scrolling are
-available. Save uses the displayed example's language, including .json for
-JSON and .txt for transcripts. Replacing unsaved code asks for confirmation.
-Selecting another library keeps your current code while changing the library
-details; use Get code examples when you want that library's examples.
-
-CLEAR, BUILD AND EXPAND
-
-Clear search empties the description, keywords, results and example selection.
-It keeps your workbench code. A cleared search cannot restore old results when
-its background request finishes. Clear code starts an empty workbench; unsaved
-code needs confirmation before it is cleared. Save first to keep a separate file.
-
-Build / update code uses the supplied CSV-to-JSON foundation for matching
-requests. It reads CSV headers, rejects missing or blank cells, displays valid
-rows and saves them as a JSON list. This foundation works without AI.
-
-For custom requests, start Ollama and install a suitable coding model on your
-computer. Refresh models detects it. Choose Starter program for a complete
-foundation or Focused snippet for one operation. Expand code starts a new
-request immediately, using the current editor text. Click it again after the
-request finishes to build on the latest version. Each round asks for a further
-useful addition when the previous request is already implemented.
-
-Changing What are you building? and clicking Build / update code sends the new
-requirement with your existing code, without resetting the workbench. Clear code
-first when you want a separate program. Keep the language selector aligned with
-the existing code; a language change cannot silently convert or replace it.
-Undo update restores the previous code change. Ctrl+Z also works in the editor.
-
-The first custom request discovers installed models if none is selected.
-The repeated-expansion checks used qwen2.5:3b, preferred when installed; an
-existing valid model selection is retained. Other model results can differ.
-A selected library and up to three
-loaded examples can provide reference context. Ollama uses the local address
-http://127.0.0.1:11434. Ollama and its model weights are not in this ZIP.
-
-The application asks for all requested features, but generated code is a draft.
-Python syntax is checked. Updates returning identical code, or only Python
-formatting/comments, are rejected. Python updates must retain existing top-level
-function and class names. One correction request is allowed for these failures.
-Code exceeding 24,000 characters is rejected rather than silently shortened.
-These checks do not prove that every feature or detail was preserved.
-That check doesn't establish correct logic, completeness or safe execution.
-Test the saved program against your requirements. Other languages need their
-own runtime/compiler checks. More complex tasks may require a stronger model.
-
-ONLINE AND OFFLINE USE
-
-Online searches send your search text to the selected public source. Documents
-you open are cached under %USERPROFILE%\.og-companion\documents for reuse.
-The PyPI name index is cached in the same parent folder. First searches or
-large indexes can take longer. Disable Search online registries to reuse
-cached documentation and supplied teaching examples without fetching pages.
-An uncached document needs online access once. There is no bulk download of
-every library and no single source contains every possible program.
-
-The 30 supplied teaching entries remain as an offline fallback. Live package
-examples, the full API indexes and source-URL loading are additional routes;
-their code isn't restricted to those entries. Some API pages contain no code
-examples and the application reports that instead of inventing one.
-
-No dependency is installed and no retrieved or generated code is executed by
-OG Companion. Copy install copies guidance for you to review. Opening a source
-in a browser is separate from the online-search setting. Custom AI requests
-go to the local Ollama service. There are no account keys inside this package.
-
-WHAT'S IN THE FOLDER
-
-OG Companion.exe                   Windows 64-bit application
-Start OG Companion.cmd             Launcher
-OG Companion - Read Me.txt         This guide
-OG Companion - Technical Specification.pdf  Full product specification
-og_companion.py                    Editable interface source
-og_companion_search.py             Registry discovery and local generation
-og_companion_sources.py            Documentation, README and source retrieval
-og_companion_library.json          Offline teaching examples and CSV foundation
-og_companion_tests.py              Automated source tests
-og_companion_assets                Genuine OG branding and documentation manifest
-OG Runtime                        Bundled Python, Tcl/Tk and runtime licences
-
-Run editable source with Python 3 and Tcl/Tk: py -3 og_companion.py
-Run the source checks: py -3 -m unittest -v og_companion_tests.py
-Source edits need an executable rebuild before they affect OG Companion.exe.
-Catalogue and asset changes are read directly by both versions.
-
-Ctrl+Enter searches. Ctrl+Shift+Enter builds or updates code.
-To check a recipient copy from a command prompt:
+For a recipient copy, run:
 "OG Companion.exe" --check-installation "%TEMP%\og-companion-check.json"
-This checks the GUI, branding, source-browser controls, documentation manifest
-and supplied foundation, clearing and undo without AI or internet access.
 
-The portable executable was checked on Windows 64-bit. Copying it to another
-folder was tested on the development computer; a clean second computer and
-macOS/Linux/ARM64 executables haven't been verified. Saved programs need their
-own language runtime and dependencies. There is no universal code guarantee.
+A clean second computer and live LM Studio installation remain recipient/provider checks. The executable is Windows 64-bit; other operating-system packages have not been verified. Saved programs need their own runtimes and dependencies. Source execution requires Python 3 and PySide6-Essentials 6.10.1; use requirements-build.txt in the GitHub repository to build the portable executable.
+
+PRIVACY AND LICENCES
+Online searches send keywords to public providers. Code generation sends your request and code to the chosen localhost service; that service's model configuration determines where inference runs. OG Companion never automatically executes retrieved/generated code or installs packages. Source URLs and licence details accompany examples. Runtime licence notices are under og_companion_assets/runtime-licences, with the Python licence under OG Runtime. Keep these files with any shared copy.

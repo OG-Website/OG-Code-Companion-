@@ -353,102 +353,276 @@ class ExpansionBoundaryTests(unittest.TestCase):
 class WorkbenchControlTests(unittest.TestCase):
     def setUp(self):
         import og_companion as ui
-        self.ui=ui;self.app=ui.OGCompanion(discover_models=False);self.app.withdraw();self.app.update()
-        self.app.model.set('test-coder')
-
-    def tearDown(self):self.app.destroy()
-
-    def code(self):return self.app.output.get('1.0','end-1c')
-
+        from PySide6.QtTest import QTest
+        self.ui=ui;self.QTest=QTest;self.app=ui.OGCompanion(discover_models=False)
+        self.app.connected_model={'name':'test-coder','endpoint':'http://localhost:11434','provider':'Ollama'}
+    def tearDown(self):self.app.dispose()
+    def code(self):return self.app.output.toPlainText()
+    def describe(self,text):self.app.description.setPlainText(text)
     def wait_request(self):
         deadline=time.monotonic()+4
-        while self.app.busy and time.monotonic()<deadline:self.app.update();time.sleep(.01)
-        self.assertFalse(self.app.busy,'Worker did not finish');self.app.update()
-
-    def describe(self,text):self.app.description.delete('1.0','end');self.app.description.insert('1.0',text)
-
-    def test_clear_search_button_clears_results_and_keeps_code(self):
-        self.app.set_code('print("keep me")','Python','Test');self.app.editor_dirty=True
-        self.app.keywords.set('csv');self.app.clear_search_button.invoke();self.app.update()
-        self.assertEqual(self.code(),'print("keep me")');self.assertTrue(self.app.editor_dirty)
-        self.assertFalse(self.app.description.get('1.0','end-1c'));self.assertFalse(self.app.keywords.get())
-        self.assertFalse(self.app.entries);self.assertFalse(self.app.library_tree.get_children())
-        self.assertIsNone(self.app.selected_library);self.assertIsNone(self.app.search_context)
-
-    def test_cleared_search_ignores_late_result_and_progress(self):
+        while self.app.busy and time.monotonic()<deadline:self.ui.application().processEvents();time.sleep(.01)
+        self.assertFalse(self.app.busy,'Worker did not finish');self.ui.application().processEvents()
+    def test_three_main_tabs(self):
+        self.assertEqual([self.app.tabs.tabText(i) for i in range(3)],['Build code','Browse libraries','Local models'])
+    def test_clear_request_keeps_user_code(self):
+        self.app.set_code('print("mine")','Python','My program');self.app.editor_dirty=True
+        self.describe('CSV');self.app.keywords.setPlainText('csv');self.app.clear_search_button.click()
+        self.assertEqual(self.code(),'print("mine")');self.assertTrue(self.app.editor_dirty)
+        self.assertFalse(self.app.entries);self.assertFalse(self.app.description.toPlainText());self.assertFalse(self.app.keywords.toPlainText())
+    def test_cleared_search_ignores_late_result(self):
         import threading
-        event=threading.Event()
-        self.app.worker('search',lambda:(event.wait(2),([], 'old results'))[1])
-        epoch=self.app.work_epoch;self.app.clear_search_button.invoke();event.set()
-        self.app.results.put(('progress',True,(epoch,'old progress')))
-        time.sleep(.04);self.app.poll()
-        self.assertFalse(self.app.entries);self.assertEqual(self.app.status.get(),'Search cleared. Your code is retained.')
-
-    def test_expansion_button_repeats_using_latest_code(self):
-        old='print(1)';one='print(1)\nprint(2)';two=one+'\nprint(3)'
+        event=threading.Event();self.app.worker('search',lambda:(event.wait(2),([], 'old result'))[1])
+        self.app.clear_search_button.click();event.set();time.sleep(.04);self.app.poll()
+        self.assertEqual(self.app.status.text(),'Request cleared. Your code is retained.');self.assertFalse(self.app.entries)
+    def test_expansion_repeats_using_latest_code(self):
+        old='print(1)';one=old+'\nprint(2)';two=one+'\nprint(3)'
         self.app.set_code(old,'Python','Test');self.describe('Add useful output')
         with patch.object(self.ui,'generate_snippet',side_effect=[one,two]) as generate:
-            self.app.expand_button.invoke();self.wait_request()
-            self.app.expand_button.invoke();self.wait_request()
-        self.assertEqual([call.args[4] for call in generate.call_args_list],[old,one])
-        self.assertEqual(self.code(),two);self.assertEqual(self.app.expansion_round,2)
-        self.assertTrue(generate.call_args.kwargs['additional_feature'])
-        self.assertEqual(generate.call_args.kwargs['previous_description'],'Add useful output')
-
-    def test_changed_description_updates_existing_code_without_reset(self):
-        old='print(1)';new=old+'\nprint(2)';self.app.set_code(old,'Python','Test')
-        self.describe('Also display two')
-        with patch.object(self.ui,'generate_snippet',return_value=new) as generate:
-            self.app.generate_button.invoke();self.wait_request()
-        self.assertEqual(generate.call_args.args[0],'Also display two');self.assertEqual(generate.call_args.args[4],old)
-        self.assertEqual(self.code(),new)
-
-    def test_undo_restores_code_before_update(self):
-        self.app.set_code('print(1)','Python','Test')
-        self.app.set_code('print(1)\nprint(2)','Python','Test',keep_undo=True)
-        self.app.undo_button.invoke();self.assertEqual(self.code(),'print(1)')
-
-    def test_search_selection_does_not_overwrite_code_or_origin(self):
-        self.app.set_code('print("mine")','Python','My program')
-        origin=self.app.code_origin.get();self.app.show_results(search.local_search('csv','Python'),'results');self.app.update()
-        self.assertEqual(self.code(),'print("mine")');self.assertEqual(self.app.code_origin.get(),origin)
-
-    def test_empty_search_disables_stale_example_actions(self):
-        self.app.examples=[{'code':'old'}];self.app.export_button.configure(state='normal')
-        self.app.show_results([], 'nothing')
-        self.assertFalse(self.app.examples);self.assertIn('disabled',self.app.export_button.state())
-        self.assertIn('disabled',self.app.examples_button.state())
-
-    def test_clear_code_respects_declined_confirmation(self):
+            self.app.expand_button.click();self.wait_request();self.app.expand_button.click();self.wait_request()
+        self.assertEqual([call.args[4] for call in generate.call_args_list],[old,one]);self.assertEqual(self.code(),two)
+        self.assertTrue(generate.call_args.kwargs['additional_feature']);self.assertEqual(self.app.expansion_round,2)
+    def test_changed_description_updates_existing_code(self):
+        old='print(1)';self.app.set_code(old,'Python','Test');self.describe('Also display two')
+        with patch.object(self.ui,'generate_snippet',return_value=old+'\nprint(2)') as generate:
+            self.app.generate_button.click();self.wait_request()
+        self.assertEqual(generate.call_args.args[4],old);self.assertEqual(generate.call_args.args[0],'Also display two')
+    def test_undo_restores_preceding_update(self):
+        self.app.set_code('print(1)','Python','Test');self.app.set_code('print(2)','Python','Updated',keep_undo=True)
+        self.app.undo_button.click();self.assertEqual(self.code(),'print(1)')
+    def test_library_selection_retains_code_and_origin(self):
+        self.app.set_code('print("mine")','Python','Mine');origin=self.app.code_origin.text()
+        self.app.show_results(search.task_libraries('csv','Python'),'results')
+        self.assertEqual(self.code(),'print("mine")');self.assertEqual(self.app.code_origin.text(),origin)
+    def test_empty_results_disable_stale_actions(self):
+        self.app.examples=[{'code':'old'}];self.app.show_results([], 'nothing')
+        self.assertFalse(self.app.examples);self.assertFalse(self.app.export_button.isEnabled());self.assertFalse(self.app.examples_button.isEnabled())
+    def test_declined_replacement_preserves_unsaved_code(self):
         self.app.set_code('print(1)','Python','Test');self.app.editor_dirty=True
-        with patch.object(self.ui.messagebox,'askyesno',return_value=False):self.app.clear_code_button.invoke()
+        with patch.object(self.ui.QMessageBox,'question',return_value=self.ui.QMessageBox.StandardButton.No):self.app.clear_code_button.click()
         self.assertEqual(self.code(),'print(1)')
-        with patch.object(self.ui.messagebox,'askyesno',return_value=True):self.app.clear_code_button.invoke()
-        self.assertEqual(self.code(),'');self.assertEqual(self.app.expansion_round,0)
-
-    def test_language_switch_does_not_send_wrong_language_code(self):
-        self.app.set_code('print(1)','Python','Test');self.app.language.set('JavaScript')
-        with patch.object(self.ui,'generate_snippet') as generate:self.app.generate_button.invoke()
-        generate.assert_not_called();self.assertEqual(self.code(),'print(1)');self.assertIn('Choose that language',self.app.status.get())
-
-    def test_missing_model_detected_and_code_preserved(self):
-        self.app.set_code('print(1)','Python','Test');self.app.model.set('')
-        with patch.object(self.ui,'installed_models',return_value=[]):
-            self.app.expand_button.invoke();self.wait_request()
-        self.assertEqual(self.code(),'print(1)');self.assertIn('need Ollama',self.app.status.get())
-
-    def test_failed_generation_retains_current_edits(self):
-        self.app.set_code('print("mine")','Python','Test');self.app.editor_dirty=True
+        with patch.object(self.ui.QMessageBox,'question',return_value=self.ui.QMessageBox.StandardButton.Yes):self.app.clear_code_button.click()
+        self.assertEqual(self.code(),'')
+    def test_wrong_language_update_is_blocked(self):
+        self.app.set_code('print(1)','Python','Test');self.app.language_box.setCurrentText('JavaScript');self.describe('Add output')
+        with patch.object(self.ui,'generate_snippet') as generate:self.app.generate_button.click()
+        generate.assert_not_called();self.assertEqual(self.code(),'print(1)')
+    def test_missing_connection_retains_code(self):
+        self.app.set_code('print(1)','Python','Test');self.app.connected_model=None;self.describe('Add output');self.app.expand_button.click()
+        self.assertEqual(self.code(),'print(1)');self.assertIn('Connect a local model',self.app.status.text())
+    def test_failed_model_response_retains_user_edits(self):
+        self.app.set_code('print("mine")','Python','Test');self.app.editor_dirty=True;self.describe('Add output')
         with patch.object(self.ui,'generate_snippet',side_effect=RuntimeError('No code change')):
-            self.app.expand_button.invoke();self.wait_request()
+            self.app.expand_button.click();self.wait_request()
         self.assertEqual(self.code(),'print("mine")');self.assertTrue(self.app.editor_dirty)
+    def test_newer_saved_edits_are_protected(self):
+        self.app.set_code('print("newer")','Python','Test');self.app.generation_baseline='print("old")'
+        self.app.results.put(('generate',True,('print("model")','Python','request',1)))
+        with patch.object(self.ui.QMessageBox,'question',return_value=self.ui.QMessageBox.StandardButton.No):self.app.poll()
+        self.assertEqual(self.code(),'print("newer")')
+    def test_keyboard_input_and_main_button_produce_exact_user_starter(self):
+        self.app.connected_model=None;self.QTest.keyClicks(self.app.description,'cybersecurity, file libraries, security considerations')
+        self.app.generate_button.click();self.assertIn('def file_hash',self.code())
+        self.assertIn('hashlib',[e['name'] for e in self.app.entries]);self.assertIn('Hashes detect changes',self.app.guidance.toPlainText())
+    def test_discovery_does_not_block_typing_or_generation(self):
+        import threading
+        event=threading.Event()
+        with patch.object(self.ui,'discover_models',side_effect=lambda endpoints:(event.wait(2),[])[1]):
+            self.app.refresh_models();self.QTest.keyClicks(self.app.description,'I can still type')
+            self.assertFalse(self.app.busy);self.assertTrue(self.app.generate_button.isEnabled());event.set()
+            deadline=time.monotonic()+3
+            while self.app.models_loading and time.monotonic()<deadline:self.ui.application().processEvents();time.sleep(.01)
+        self.assertEqual(self.app.description.toPlainText(),'I can still type')
+    def test_offline_documentation_reference_without_model(self):
+        self.app.connected_model=None;self.describe('pytest fixtures');self.app.online.setChecked(False)
+        example={'code':'def test_example():\n    assert 1 + 1 == 2','language':'Python','title':'Example','url':'https://devdocs.io/pytest','licence':'MIT'}
+        with patch.object(self.ui,'collection_examples',return_value=([example],'Cached examples')):
+            self.app.generate_button.click();self.wait_request()
+        self.assertIn('def test_example',self.code());self.assertEqual(self.app.examples,[example])
+    def test_discovery_lists_all_recipient_models_without_connecting(self):
+        self.app.connected_model=None
+        models=[{'name':'one','endpoint':'http://localhost:11434','provider':'Ollama'},{'name':'two','endpoint':'http://localhost:1234','provider':'LM Studio','loaded':False}]
+        self.app.results.put(('models',True,models));self.app.poll()
+        self.assertEqual(self.app.model_table.rowCount(),2);self.assertIsNone(self.app.connected_model)
+    def test_explicit_connection_uses_selected_model(self):
+        model={'name':'chosen','endpoint':'http://localhost:23123','provider':'Ollama'}
+        self.app.results.put(('models',True,[model]));self.app.poll();self.app.connected_model=None
+        with patch.object(self.ui,'connect_local_model',return_value=model) as connect:
+            self.app.connect_button.click();deadline=time.monotonic()+3
+            while self.app.connected_model is None and time.monotonic()<deadline:self.ui.application().processEvents();time.sleep(.01)
+        connect.assert_called_once_with(model);self.assertEqual(self.app.connected_model,model)
 
-    def test_saved_newer_edits_still_need_confirmation_before_replacement(self):
-        self.app.set_code('print("newer saved")','Python','Test');self.app.editor_dirty=False
-        self.app.generation_baseline='print("older")'
-        self.app.results.put(('generate',True,('print("response")','Python','request',1,'test')))
-        with patch.object(self.ui.messagebox,'askyesno',return_value=False) as confirm:self.app.poll()
-        confirm.assert_called_once();self.assertEqual(self.code(),'print("newer saved")')
+    def test_window_is_brought_inside_the_preferred_work_area(self):
+        screen=self.ui.application().primaryScreen();work=screen.availableGeometry()
+        self.app.placement={'screen':screen.name()};self.app.resize(1280,900);self.app.move(work.left(),work.top()-1000)
+        self.app.ensure_on_screen();frame=self.app.frameGeometry()
+        self.assertTrue(work.contains(frame),(work,frame))
+
+    def test_disconnected_preferred_monitor_falls_back_to_a_visible_screen(self):
+        self.app.placement={'screen':'disconnected-monitor'};self.app.move(-5000,-5000);self.app.ensure_on_screen()
+        self.assertTrue(any(s.availableGeometry().contains(self.app.frameGeometry()) for s in self.ui.application().screens()))
+
+
+class TaskAndModelTests(unittest.TestCase):
+    def test_exact_cybersecurity_request_has_code_and_libraries(self):
+        task='cybersecurity, file libraries, security considerations'
+        entries=search.task_libraries(task,'Python')
+        self.assertIn('hashlib',[e['name'] for e in entries]);self.assertIn('pathlib',[e['name'] for e in entries])
+        code,name=search.starter_program(task,'Python');ast.parse(code)
+        self.assertIn('def compare',code);self.assertIn('Hashes detect changes',search.task_guidance(task,'Python',entries))
+
+    def test_security_starter_does_not_silently_drop_gui_request(self):
+        self.assertIsNone(search.starter_program('cybersecurity file monitor with GUI','Python'))
+
+    def test_integrity_starter_records_and_detects_actual_file_changes(self):
+        code,_=search.starter_program('cybersecurity file libraries security considerations','Python')
+        with tempfile.TemporaryDirectory() as folder:
+            root=Path(folder);data=root/'data';data.mkdir();(data/'a.txt').write_text('one')
+            script=root/'integrity.py';script.write_text(code,encoding='utf-8');manifest=root/'manifest.json'
+            baseline=subprocess.run([sys.executable,str(script),'baseline',str(data),str(manifest)],capture_output=True,text=True)
+            self.assertEqual(baseline.returncode,0,baseline.stdout+baseline.stderr)
+            (data/'a.txt').write_text('two');(data/'b.txt').write_text('new')
+            result=subprocess.run([sys.executable,str(script),'check',str(data),str(manifest)],capture_output=True,text=True)
+            self.assertIn('"a.txt"',result.stdout);self.assertIn('"b.txt"',result.stdout)
+            second=subprocess.run([sys.executable,str(script),'baseline',str(data),str(manifest)],capture_output=True,text=True)
+            self.assertNotEqual(second.returncode,0)
+            self.assertEqual(json.loads(manifest.read_text())['hashes']['a.txt'],__import__('hashlib').sha256(b'one').hexdigest())
+
+    def test_custom_ollama_port_is_used(self):
+        with patch.object(search,'fetch_json',return_value={'models':[{'name':'recipient-model'}]}) as fetch:
+            rows=search.models_at('http://127.0.0.1:23001')
+        self.assertEqual(rows[0]['name'],'recipient-model');self.assertEqual(fetch.call_args.args[0],'http://127.0.0.1:23001/api/tags')
+
+    def test_discovery_includes_all_services_and_does_not_connect(self):
+        with patch.object(search,'model_endpoints',return_value=['http://localhost:1111']),patch.object(search,'models_at',side_effect=lambda endpoint:[{'name':'model-'+endpoint,'endpoint':endpoint,'provider':'Ollama'}]),patch.object(search,'connect_local_model') as connect:
+            rows=search.discover_models(['http://localhost:2222'])
+        self.assertEqual(len(rows),2);connect.assert_not_called()
+
+    def test_unreachable_service_does_not_hide_reachable_recipient_models(self):
+        def available(endpoint):
+            if endpoint.endswith('1111'):raise URLError('offline')
+            return [{'name':'mine','endpoint':endpoint,'provider':'Ollama'}]
+        with patch.object(search,'model_endpoints',return_value=['http://localhost:1111','http://localhost:2222']),patch.object(search,'models_at',side_effect=available):
+            self.assertEqual(search.discover_models()[0]['name'],'mine')
+
+    def test_lm_studio_lists_downloaded_and_loaded_models(self):
+        def api(url,**kwargs):
+            if url.endswith('/api/tags'):raise URLError('not Ollama')
+            return {'models':[{'key':'downloaded','type':'llm','loaded_instances':[]},{'key':'loaded','type':'llm','loaded_instances':[{'id':'instance'}]},{'key':'embedding','type':'embedding'}]}
+        with patch.object(search,'fetch_json',side_effect=api):rows=search.models_at('http://localhost:1234')
+        self.assertEqual(len(rows),3);self.assertFalse(rows[0]['loaded']);self.assertTrue(rows[1]['loaded'])
+
+    def test_lm_studio_connection_loads_only_explicit_selection(self):
+        model={'name':'downloaded','endpoint':'http://localhost:1234','provider':'LM Studio','kind':'llm','loaded':False}
+        with patch.object(search,'models_at',return_value=[model]),patch.object(search,'fetch_json',return_value={'instance_id':'loaded-instance'}) as fetch:
+            connected=search.connect_local_model(model)
+        self.assertEqual(connected['inference_name'],'loaded-instance');self.assertEqual(fetch.call_args.kwargs['payload'],{'model':'downloaded'})
+
+    def test_embedding_model_is_listed_but_not_used_for_code(self):
+        model={'name':'embedding','endpoint':'http://localhost:1234','provider':'LM Studio','kind':'embedding'}
+        with patch.object(search,'models_at',return_value=[model]),patch.object(search,'fetch_json') as fetch:
+            with self.assertRaisesRegex(RuntimeError,'Choose a language model'):search.connect_local_model(model)
+        fetch.assert_not_called()
+
+    def test_remote_service_urls_are_rejected(self):
+        for endpoint in ('https://example.com','http://user:secret@localhost:1234','file:///tmp/model','http://127.0.0.1:1234/?key=secret'):
+            with self.assertRaises(ValueError):search.local_endpoint(endpoint)
+
+    def test_generation_uses_connected_recipient_endpoint(self):
+        with patch.object(search,'fetch_json',return_value={'response':'print(1)'}) as fetch:
+            search.generate_snippet('Print one','Python','recipient',endpoint='http://localhost:23123')
+        self.assertEqual(fetch.call_args.args[0],'http://localhost:23123/api/generate')
+
+    def test_openai_compatible_local_model_generates_code(self):
+        with patch.object(search,'fetch_json',return_value={'choices':[{'message':{'content':'print(1)'},'finish_reason':'stop'}]}) as fetch:
+            code=search.generate_snippet('Print one','Python','recipient',endpoint='http://localhost:1234',provider='LM Studio')
+        self.assertEqual(code,'print(1)');self.assertEqual(fetch.call_args.args[0],'http://localhost:1234/v1/chat/completions')
+
+    def test_reusable_module_rejects_unrequested_interactive_prompts(self):
+        with patch.object(search,'fetch_json',side_effect=[{'response':'value = input("Name: ")'},{'response':'def value():\n    return 1'}]) as fetch:
+            code=search.generate_snippet('A reusable module without a CLI or input prompts','Python','local')
+        self.assertIn('def value',code);self.assertEqual(fetch.call_count,2)
+
+    def test_legacy_lm_studio_includes_downloaded_models(self):
+        def api(url,**kwargs):
+            if url.endswith(('/api/tags','/api/v1/models')):raise URLError('not this API')
+            return {'data':[{'id':'downloaded','type':'llm','state':'not-loaded'},{'id':'loaded','type':'llm','state':'loaded'}]}
+        with patch.object(search,'fetch_json',side_effect=api):rows=search.models_at('http://localhost:1234')
+        self.assertEqual(len(rows),2);self.assertFalse(rows[0]['loaded']);self.assertTrue(rows[1]['loaded'])
+
+    def test_service_token_used_only_for_local_model_requests(self):
+        with patch.dict(search.MODEL_TOKENS,{},clear=True),patch.object(search,'fetch_json',return_value={}) as fetch:
+            search.set_service_token('http://localhost:1234','controlled-test-token')
+            search.model_json('http://localhost:1234','/v1/models')
+            self.assertEqual(fetch.call_args.kwargs['headers_extra'],{'Authorization':'Bearer controlled-test-token'})
+            with self.assertRaises(ValueError):search.model_json('https://example.com','/v1/models')
+            self.assertEqual(fetch.call_count,1)
+
+    def test_removing_service_token_clears_it_from_memory(self):
+        with patch.dict(search.MODEL_TOKENS,{},clear=True):
+            search.set_service_token('http://localhost:1234','test');search.set_service_token('http://localhost:1234','')
+            self.assertFalse(search.MODEL_TOKENS)
+
+    def test_common_openai_base_url_does_not_duplicate_api_paths(self):
+        self.assertEqual(search.local_endpoint('http://localhost:1234/v1'),'http://localhost:1234')
+        with patch.object(search,'fetch_json',return_value={'models':[{'name':'recipient'}]}) as fetch:
+            search.models_at('http://localhost:1234/v1')
+        self.assertEqual(fetch.call_args.args[0],'http://localhost:1234/api/tags')
+
+
+class CompleteCollectionTests(unittest.TestCase):
+    def test_complete_database_reads_all_pages_and_deduplicates(self):
+        doc={'name':'Test','slug':'test','mtime':12,'attribution':'Original author; MIT','type':'python'}
+        data={str(i):'<pre data-language="python">print('+str(i)+')</pre>' for i in range(87)}
+        data['duplicate']=data['0']
+        with tempfile.TemporaryDirectory() as folder,patch.object(sources,'fetch_text',return_value=(json.dumps(data),'url','application/json')):
+            rows,status=sources.collection_examples(doc,cache_dir=folder)
+        self.assertEqual(len(rows),87);self.assertIn('88 pages',status);self.assertIn('MIT',rows[0]['licence'])
+        self.assertTrue(all(e['url'].startswith('https://devdocs.io/test/') for e in rows))
+
+    def test_complete_collection_cache_is_usable_offline(self):
+        doc={'name':'Test','slug':'test','mtime':12}
+        with tempfile.TemporaryDirectory() as folder:
+            with patch.object(sources,'fetch_text',return_value=('{"index":"<pre>code</pre>"}','url','application/json')):
+                sources.collection_examples(doc,cache_dir=folder)
+            with patch.object(sources,'fetch_text') as network:
+                rows,_=sources.collection_examples(doc,cache_dir=folder,online=False)
+            self.assertEqual(len(rows),1);network.assert_not_called()
+
+    def test_matching_library_uses_entire_manifest_and_preserves_language(self):
+        docs=[{'name':'Requests','slug':'requests'},{'name':'scikit-learn','slug':'scikit_learn','alias':'sklearn'}]
+        with patch.object(sources,'documentation_catalogue',return_value=docs):
+            self.assertEqual(sources.matching_documentation({'name':'sklearn','language':'Python'})['slug'],'scikit_learn')
+            self.assertIsNone(sources.matching_documentation({'name':'requests','language':'JavaScript'}))
+
+    def test_library_matching_full_collection_replaces_single_teaching_example(self):
+        doc={'name':'NumPy','slug':'numpy~2.5'}
+        entry=search.package_result('numpy','Python','Starter library','','','https://numpy.org','pip install numpy')
+        entry['snippet']='import numpy'
+        with patch.object(sources,'matching_documentation',return_value=doc),patch.object(sources,'collection_examples',return_value=([{'code':'full'}],'full collection')) as load:
+            rows,_=sources.library_examples(entry)
+        load.assert_called_once();self.assertEqual(rows,[{'code':'full'}])
+
+    def test_invalid_collection_slug_rejected(self):
+        with self.assertRaises(ValueError):sources.collection_examples({'slug':'../private'})
+
+    def test_unexpected_database_does_not_cache_a_false_success(self):
+        with tempfile.TemporaryDirectory() as folder,patch.object(sources,'fetch_text',return_value=('{"index":4}','url','application/json')):
+            with self.assertRaises(ValueError):sources.collection_examples({'name':'Test','slug':'test'},cache_dir=folder)
+            self.assertFalse(list(Path(folder).glob('*.gz')))
+
+    def test_github_library_name_is_not_changed_to_a_task_synonym(self):
+        with patch.object(sources,'fetch_json',return_value={'items':[],'total_count':0}) as fetch:
+            sources.github_search('requests','Python')
+        self.assertIn('q=requests+',fetch.call_args.args[0]);self.assertNotIn('q=http+',fetch.call_args.args[0])
+
+    def test_cmake_file_loads_as_actual_source_not_repository_readme(self):
+        with patch.object(sources,'public_url'),patch.object(sources,'cached_document',return_value=('cmake_minimum_required(VERSION 3.20)','https://raw.githubusercontent.com/a/b/main/CMakeLists.txt','text/plain','Live')),patch.object(sources,'repository_readme') as readme:
+            rows,_=sources.url_examples('https://github.com/a/b/blob/main/CMakeLists.txt','CMake')
+        readme.assert_not_called();self.assertEqual(rows[0]['language'],'CMake');self.assertIn('cmake_minimum',rows[0]['code'])
+
+    def test_cmake_selector_and_save_extension(self):
+        self.assertIn('CMake',search.LANGUAGES);self.assertEqual(search.EXTENSIONS['CMake'],'.cmake')
 
 
 if __name__=='__main__':unittest.main()

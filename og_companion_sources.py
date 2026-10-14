@@ -8,6 +8,7 @@ from hashlib import sha256
 from html import unescape
 from html.parser import HTMLParser
 import ipaddress
+import gzip
 import json
 from pathlib import Path
 import re
@@ -35,7 +36,7 @@ DOC_DEFAULTS = {'Python': 'python~3.14', 'JavaScript': 'javascript', 'TypeScript
                 'Scala': 'scala~2.13', 'Rust': 'rust', 'PHP': 'php', 'Ruby': 'ruby~3.4',
                 'Go': 'go', 'C++': 'cpp', 'C': 'c', 'SQL': 'sqlite', 'Bash': 'bash',
                 'PowerShell': 'powershell', 'R': 'r', 'Swift': 'swift', 'Dart': 'dart',
-                'HTML / CSS': 'html'}
+                'HTML / CSS': 'html','CMake':'cmake'}
 
 
 def public_url(url, *, resolve=True):
@@ -173,6 +174,8 @@ def documentation_catalogue(online=True):
     try:
         text, _, _, _ = cached_document('https://devdocs.io/docs.json', online=online)
         data = json.loads(text)
+        if not isinstance(data,list) or not all(isinstance(row,dict) and isinstance(row.get('slug'),str) for row in data):
+            raise ValueError('Unexpected documentation catalogue format.')
     except (OSError, ValueError, RuntimeError):
         data = json.loads((BASE / 'og_companion_assets' / 'documentation-index.json').read_text(encoding='utf-8'))
     return [row for row in data if re.fullmatch(r'[a-zA-Z0-9_.~+-]+', row['slug'])]
@@ -180,7 +183,7 @@ def documentation_catalogue(online=True):
 
 def documentation_language(docset, fallback='Text'):
     family=docset['slug'].split('~')[0]
-    if family in ('python','numpy','pandas','scipy','scikit-learn','django','flask','tensorflow','pytorch','sphinx','matplotlib','seaborn','statsmodels'):return 'Python'
+    if family in ('python','numpy','pandas','scipy','scikit-learn','scikit_learn','django','flask','fastapi','requests','pytest','tensorflow','pytorch','sphinx','matplotlib','seaborn','statsmodels'):return 'Python'
     if family in ('javascript','node','express','react','react_native','vue','vueuse','angular','jquery','lodash','underscore','nextjs','svelte','d3','moment','rxjs','backbone'):return 'JavaScript'
     if family in ('sqlite','mysql','mariadb','postgresql'):return 'SQL'
     if family=='cpp':return 'C++'
@@ -214,7 +217,7 @@ def documentation_search(docset, query='', *, page=1, online=True, page_size=100
 
 def github_search(query, language, *, page=1):
     lang = {'HTML / CSS':'HTML', 'Bash':'Shell'}.get(language, language)
-    meaningful = ' '.join(sorted(tokens(query))) or query.strip()
+    meaningful = query.strip()
     data = fetch_json('https://api.github.com/search/repositories?' + urlencode(
         {'q': meaningful+' language:"'+lang+'" archived:false', 'per_page':50, 'page':page}))
     rows = []
@@ -246,7 +249,64 @@ def repository_readme(url, online=True):
     return text, data['html_url']
 
 
-def library_examples(entry, *, online=True):
+def matching_documentation(entry):
+    """Resolve a library against the entire edition manifest, not a snippet list."""
+    normal=lambda value:re.sub(r'[^a-z0-9]','',str(value).casefold())
+    wanted={normal(entry['name']),normal(entry['name'].split('/')[-1].split(':')[-1])}
+    wanted.discard('')
+    for doc in documentation_catalogue(online=False):
+        names={normal(doc['name']),normal(doc['slug'].split('~')[0]),normal(doc.get('alias') or '')}
+        if wanted & names and documentation_language(doc,entry['language'])==entry['language']:
+            return doc
+    return None
+
+
+def collection_examples(docset, *, online=True, cache_dir=None, progress=lambda message:None):
+    """Extract every distinct block in a published documentation database."""
+    slug=docset['slug']
+    if not re.fullmatch(r'[a-zA-Z0-9_.~+-]+',slug):raise ValueError('Invalid documentation edition.')
+    folder=Path(cache_dir) if cache_dir else Path.home()/'.og-companion'/'collections'
+    file=folder/(slug+'.json.gz');cached=None
+    supplied=BASE/'og_companion_assets'/'example-collections'/(slug+'.json.gz')
+    if supplied.exists() and not file.exists():file=supplied
+    if file.exists():
+        try:
+            with gzip.open(file,'rt',encoding='utf-8') as stream:cached=json.load(stream)
+            if cached.get('slug')!=slug or not isinstance(cached.get('examples'),list):cached=None
+        except (OSError,ValueError,EOFError):cached=None
+    if cached and (not online or cached.get('mtime')==docset.get('mtime')):
+        return cached['examples'],f"{len(cached['examples']):,} distinct source blocks · {docset['name']} complete collection · cached"
+    if not online:raise RuntimeError('This complete collection is not downloaded yet. Enable online access to load it once.')
+    url='https://documents.devdocs.io/'+quote(slug)+'/db.json'
+    progress('Downloading the complete '+docset['name']+' documentation collection…')
+    try:
+        text,_,_=fetch_text(url,limit=160_000_000)
+        database=json.loads(text)
+        if not isinstance(database,dict) or not all(isinstance(value,str) for value in database.values()):
+            raise ValueError('The documentation database has an unexpected format.')
+    except (OSError,ValueError):
+        if cached:return cached['examples'],f"{len(cached['examples']):,} distinct source blocks · retained collection after refresh failure"
+        raise
+    examples=[];seen=set();attribution=unescape(re.sub('<[^>]+>',' ',docset.get('attribution',''))).strip()
+    language=documentation_language(docset,docset['name'])
+    for path,html in database.items():
+        source='https://devdocs.io/'+quote(slug)+'/'+quote(path,safe='/')
+        for row in extract_examples(html,source,language,attribution='DevDocs · '+attribution,licence=attribution or 'See original documentation terms'):
+            key=(row['code'],row['language'])
+            if key not in seen:
+                seen.add(key);row.update(collection=docset['name'],edition=slug,topic=path)
+                examples.append(row)
+    folder.mkdir(parents=True,exist_ok=True)
+    with tempfile.NamedTemporaryFile(dir=folder,delete=False,suffix='.tmp') as stream:temporary=Path(stream.name)
+    try:
+        with gzip.open(temporary,'wt',encoding='utf-8') as stream:
+            json.dump({'slug':slug,'mtime':docset.get('mtime'),'pages':len(database),'fetched_at':time.time(),'examples':examples},stream,ensure_ascii=False)
+        temporary.replace(folder/(slug+'.json.gz'))
+    finally:temporary.unlink(missing_ok=True)
+    return examples,f'{len(examples):,} distinct source blocks · {len(database):,} pages · {docset["name"]} complete collection'
+
+
+def library_examples(entry, *, online=True, complete=True):
     """Read source examples from arbitrary selected packages, not just supplied entries."""
     language = entry['language']; blocks = []; issues = []; documents = []; licence = entry.get('licence','See source terms')
     if entry['source']=='DevDocs':
@@ -256,6 +316,10 @@ def library_examples(entry, *, online=True):
         text, _, _, status = cached_document(url, online=online)
         rows = extract_examples(text, entry['docs'], language, attribution=entry.get('attribution','DevDocs'), licence=entry.get('attribution','See documentation terms'))
         return rows, status+' · DevDocs · '+str(len(rows))+' code examples from this topic'
+    docset=matching_documentation(entry) if complete else None
+    if docset:
+        try:return collection_examples(docset,online=online)
+        except (OSError,ValueError,RuntimeError) as error:issues.append('Complete collection unavailable: '+str(error))
     if entry.get('snippet'):
         blocks.append({'title':'Supplied offline example', 'code':entry['snippet'], 'language':language,
                        'url':entry['docs'], 'attribution':'OG Companion teaching example', 'licence':'OG Web.site teaching example'})
@@ -304,6 +368,15 @@ def library_examples(entry, *, online=True):
         for rows,error in workers.map(read,documents):
             blocks.extend(rows)
             if error: issues.append(error)
+    if not blocks and online and entry['source']!='GitHub':
+        try:
+            repositories,_=github_search(entry['name'],language)
+            if repositories:
+                readme=repository_readme(repositories[0]['docs'],online=True)
+                if readme:
+                    text,source=readme
+                    blocks.extend(extract_examples(text,source,language,licence=repositories[0].get('licence','See repository terms')))
+        except (OSError,ValueError,RuntimeError,KeyError) as error:issues.append('Repository discovery unavailable: '+str(error))
     seen=set();unique=[]
     for block in blocks:
         if block['code'] not in seen: seen.add(block['code']);unique.append(block)
@@ -314,6 +387,20 @@ def library_examples(entry, *, online=True):
 
 def url_examples(url, language, *, online=True):
     public_url(url,resolve=online)
+    parsed=urlparse(url)
+    if parsed.hostname in ('github.com','www.github.com') and '/blob/' in parsed.path:
+        owner,repo,_,rest=parsed.path.strip('/').split('/',3)
+        url='https://raw.githubusercontent.com/'+owner+'/'+repo+'/'+rest
+    suffix=Path(urlparse(url).path).suffix
+    raw_languages={'.py':'Python','.js':'JavaScript','.ts':'TypeScript','.cs':'C#','.cpp':'C++','.c':'C',
+                   '.java':'Java','.rs':'Rust','.go':'Go','.php':'PHP','.rb':'Ruby','.cmake':'CMake',
+                   '.swift':'Swift','.dart':'Dart','.sh':'Bash','.ps1':'PowerShell','.r':'R','.sql':'SQL'}
+    extra_sources={'.zig','.ex','.exs','.erl','.hs','.scala','.kt','.fs','.lua','.jl','.f90','.m','.pl','.clj','.rkt','.groovy','.v','.sv','.vb'}
+    if suffix.casefold() in raw_languages or suffix.casefold() in extra_sources or urlparse(url).path.endswith('/CMakeLists.txt'):
+        text,source,_,_=cached_document(url,online=online)
+        if text.lstrip().casefold().startswith(('<!doctype html','<html')):raise ValueError('This source address returned a webpage rather than source code.')
+        return [{'title':Path(urlparse(source).path).name,'code':text,'language':raw_languages.get(suffix.casefold(),'CMake' if urlparse(source).path.endswith('/CMakeLists.txt') else language),
+                 'url':source,'attribution':'Original source file','licence':'See the original repository licence'}],'1 complete source file · source retained verbatim'
     readme = repository_readme(url,online)
     if readme: text,source=readme
     else: text,source,_,_=cached_document(url,online=online)

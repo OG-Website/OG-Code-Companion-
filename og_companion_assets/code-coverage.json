@@ -1,0 +1,870 @@
+{
+  "checked_at": "2026-10-09",
+  "bundled_collections": [
+    {
+      "name": "pandas",
+      "edition": "pandas~3",
+      "blocks": 5264,
+      "status": "5,264 distinct source blocks \u00b7 2,228 pages \u00b7 pandas complete collection",
+      "languages": [
+        "Python",
+        "Python transcript"
+      ],
+      "available": true,
+      "seconds": 13.5,
+      "attribution": "&copy; 2008&ndash;2011, AQR Capital Management, LLC, Lambda Foundry, Inc. and PyData Development Team<br>\n      &copy; 2011&ndash;2025, Open source contributors<br>\n      Licensed under the 3-clause BSD License.",
+      "licence": "BSD-3-Clause",
+      "source_licence_file": "source-licences/pandas~3.txt"
+    },
+    {
+      "name": "scikit-learn",
+      "edition": "scikit_learn",
+      "blocks": 3168,
+      "status": "3,168 distinct source blocks \u00b7 944 pages \u00b7 scikit-learn complete collection",
+      "languages": [
+        "Python",
+        "Python transcript",
+        "Text",
+        "none"
+      ],
+      "available": true,
+      "seconds": 65.1,
+      "attribution": "&copy; 2007&ndash;2026 The scikit-learn developers<br>\n      Licensed under the 3-clause BSD License.",
+      "licence": "BSD-3-Clause",
+      "source_licence_file": "source-licences/scikit_learn.txt"
+    },
+    {
+      "name": "Requests",
+      "edition": "requests",
+      "blocks": 13,
+      "status": "13 distinct source blocks \u00b7 1 pages \u00b7 Requests complete collection",
+      "languages": [
+        "Python",
+        "Python transcript"
+      ],
+      "available": true,
+      "seconds": 0.7,
+      "attribution": "&copy; 2011-2026 Kenneth Reitz and other contributors<br>\n      Licensed under the Apache license.",
+      "licence": "Apache-2.0",
+      "source_licence_file": "source-licences/requests.txt"
+    },
+    {
+      "name": "pytest",
+      "edition": "pytest",
+      "blocks": 731,
+      "status": "731 distinct source blocks \u00b7 49 pages \u00b7 pytest complete collection",
+      "languages": [
+        "Bash",
+        "Console",
+        "INI",
+        "Python",
+        "Python transcript",
+        "TOML",
+        "Text",
+        "XML",
+        "pytest"
+      ],
+      "available": true,
+      "seconds": 2.1,
+      "attribution": "&copy; 2015&ndash;2026 Holger Krekel and pytest-dev team<br>\n      Licensed under the MIT License.",
+      "licence": "MIT",
+      "source_licence_file": "source-licences/pytest.txt"
+    },
+    {
+      "name": "Flask",
+      "edition": "flask",
+      "blocks": 460,
+      "status": "460 distinct source blocks \u00b7 59 pages \u00b7 Flask complete collection",
+      "languages": [
+        "Bash",
+        "Console",
+        "HTML / CSS",
+        "JavaScript",
+        "Python",
+        "Python transcript",
+        "TOML",
+        "Text",
+        "apache",
+        "html+jinja",
+        "jinja",
+        "nginx",
+        "pytb"
+      ],
+      "available": true,
+      "seconds": 1.7,
+      "attribution": "&copy; 2010 Pallets<br>\n      Licensed under the BSD 3-clause License.",
+      "licence": "BSD-3-Clause",
+      "source_licence_file": "source-licences/flask.txt"
+    },
+    {
+      "name": "Django",
+      "edition": "django~6.1",
+      "blocks": 3595,
+      "status": "3,595 distinct source blocks \u00b7 239 pages \u00b7 Django complete collection",
+      "languages": [
+        "Bash",
+        "Console",
+        "HTML / CSS",
+        "INI",
+        "JavaScript",
+        "Python",
+        "Python transcript",
+        "SQL",
+        "TOML",
+        "Text",
+        "XML",
+        "YAML",
+        "apache",
+        "bat",
+        "diff",
+        "doscon",
+        "html+jinja",
+        "jinja",
+        "markup",
+        "nginx",
+        "none",
+        "po",
+        "psql",
+        "pytb",
+        "rst",
+        "sqlite3",
+        "xml+django"
+      ],
+      "available": true,
+      "seconds": 8.9,
+      "attribution": "&copy; Django Software Foundation and individual contributors<br>\n      Licensed under the BSD License.",
+      "licence": "BSD-3-Clause",
+      "source_licence_file": "source-licences/django~6.1.txt"
+    },
+    {
+      "name": "React",
+      "edition": "react",
+      "blocks": 1717,
+      "status": "1,717 distinct source blocks \u00b7 179 pages \u00b7 React complete collection",
+      "languages": [
+        "JavaScript"
+      ],
+      "available": true,
+      "seconds": 8.7,
+      "attribution": "&copy; 2013&ndash;present Facebook Inc.<br>\n      Licensed under the Creative Commons Attribution 4.0 International Public License.",
+      "licence": "MIT",
+      "source_licence_file": "source-licences/react.txt"
+    },
+    {
+      "name": "Express",
+      "edition": "express",
+      "blocks": 341,
+      "status": "341 distinct source blocks \u00b7 24 pages \u00b7 Express complete collection",
+      "languages": [
+        "JavaScript",
+        "plain",
+        "pug"
+      ],
+      "available": true,
+      "seconds": 0.7,
+      "attribution": "&copy; 2017 StrongLoop, IBM, and other expressjs.com contributors.<br>\n      Licensed under the Creative Commons Attribution-ShareAlike License v3.0.",
+      "licence": "MIT",
+      "source_licence_file": "source-licences/express.txt"
+    },
+    {
+      "name": "jQuery",
+      "edition": "jquery",
+      "blocks": 1080,
+      "status": "1,080 distinct source blocks \u00b7 419 pages \u00b7 jQuery complete collection",
+      "languages": [
+        "JavaScript",
+        "markup"
+      ],
+      "available": true,
+      "seconds": 2.0,
+      "attribution": "&copy; The jQuery Foundation and other contributors<br>\n      Licensed under the MIT License.",
+      "licence": "MIT",
+      "source_licence_file": "source-licences/jquery.txt"
+    },
+    {
+      "name": "TypeScript",
+      "edition": "typescript",
+      "blocks": 1390,
+      "status": "1,390 distinct source blocks \u00b7 79 pages \u00b7 TypeScript complete collection",
+      "languages": [
+        "Bash",
+        "C#",
+        "HTML / CSS",
+        "JSON",
+        "JavaScript",
+        "TypeScript",
+        "XML",
+        "diff",
+        "jsonc",
+        "txt",
+        "typescript+html"
+      ],
+      "available": true,
+      "seconds": 1.7,
+      "attribution": "&copy; 2012-2026 Microsoft<br>\n      Licensed under the Apache License, Version 2.0.",
+      "licence": "Apache-2.0",
+      "source_licence_file": "source-licences/typescript.txt"
+    },
+    {
+      "name": "CMake",
+      "edition": "cmake",
+      "blocks": 2143,
+      "status": "2,143 distinct source blocks \u00b7 2,187 pages \u00b7 CMake complete collection",
+      "languages": [
+        "Bash",
+        "C",
+        "C++",
+        "CMake",
+        "Console",
+        "JSON",
+        "JavaScript",
+        "Text",
+        "XML",
+        "YAML",
+        "cmake",
+        "make",
+        "matlab",
+        "none",
+        "po",
+        "proto"
+      ],
+      "available": true,
+      "seconds": 9.0,
+      "attribution": "&copy; 2000&ndash;2026 Kitware, Inc. and Contributors<br>\n      Licensed under the BSD 3-clause License.",
+      "licence": "BSD-3-Clause",
+      "source_licence_file": "source-licences/cmake.txt"
+    },
+    {
+      "name": "Go",
+      "edition": "go",
+      "blocks": 8446,
+      "status": "8,446 distinct source blocks \u00b7 199 pages \u00b7 Go complete collection",
+      "languages": [
+        "Go"
+      ],
+      "available": true,
+      "seconds": 4.5,
+      "attribution": "&copy; Google, Inc.<br>\n      Licensed under the Creative Commons Attribution License 3.0.",
+      "licence": "BSD-3-Clause",
+      "source_licence_file": "source-licences/go.txt"
+    },
+    {
+      "name": "Rust",
+      "edition": "rust",
+      "blocks": 45029,
+      "status": "45,029 distinct source blocks \u00b7 2,894 pages \u00b7 Rust complete collection",
+      "languages": [
+        "Bash",
+        "C",
+        "Console",
+        "Python",
+        "Rust",
+        "Text",
+        "asm",
+        "error",
+        "no",
+        "should_fail",
+        "test",
+        "txt"
+      ],
+      "available": true,
+      "seconds": 74.1,
+      "attribution": "&copy; 2010 The Rust Project Developers<br>\n      Licensed under the Apache License, Version 2.0 or the MIT license, at your option.",
+      "licence": "MIT",
+      "source_licence_file": "source-licences/rust.txt"
+    },
+    {
+      "name": "Dart",
+      "edition": "dart~3",
+      "blocks": 11135,
+      "status": "11,135 distinct source blocks \u00b7 12,898 pages \u00b7 Dart complete collection",
+      "languages": [
+        "Dart"
+      ],
+      "available": true,
+      "seconds": 20.1,
+      "attribution": "&copy; 2012 the Dart project authors<br>\n      Licensed under the BSD 3-Clause \"New\" or \"Revised\" License.",
+      "licence": "BSD-3-Clause",
+      "source_licence_file": "source-licences/dart~3.txt"
+    }
+  ],
+  "bundled_collection_count": 14,
+  "bundled_distinct_blocks_per_collection": 84512,
+  "additional_on_demand_collections": [
+    {
+      "name": "Python",
+      "reason": "Source terms retained for on-demand use; not bundled",
+      "licence": "NOASSERTION"
+    },
+    {
+      "name": "NumPy",
+      "reason": "Source terms retained for on-demand use; not bundled",
+      "licence": "NOASSERTION"
+    },
+    {
+      "name": "Matplotlib",
+      "reason": "Repository licence not retrieved"
+    },
+    {
+      "name": "JavaScript",
+      "reason": "No repository licence resolved for bundled redistribution"
+    },
+    {
+      "name": "lodash",
+      "reason": "Source terms retained for on-demand use; not bundled",
+      "licence": "NOASSERTION"
+    },
+    {
+      "name": "C",
+      "reason": "No repository licence resolved for bundled redistribution"
+    },
+    {
+      "name": "C++",
+      "reason": "No repository licence resolved for bundled redistribution"
+    },
+    {
+      "name": "Ruby",
+      "reason": "Source terms retained for on-demand use; not bundled",
+      "licence": "NOASSERTION"
+    },
+    {
+      "name": "PHP",
+      "reason": "No repository licence resolved for bundled redistribution"
+    },
+    {
+      "name": "SQLite",
+      "reason": "No repository licence resolved for bundled redistribution"
+    },
+    {
+      "name": "Kotlin",
+      "reason": "Repository licence not retrieved"
+    },
+    {
+      "name": "Bash",
+      "reason": "No repository licence resolved for bundled redistribution"
+    },
+    {
+      "name": "PowerShell",
+      "reason": "Source terms retained for on-demand use; not bundled",
+      "licence": "NOASSERTION"
+    }
+  ],
+  "measured_coverage": {
+    "checked_at": "2026-10-09",
+    "collections": [
+      {
+        "name": "Python",
+        "edition": "python~3.14",
+        "blocks": 4986,
+        "status": "4,986 distinct source blocks \u00b7 499 pages \u00b7 Python complete collection",
+        "languages": [
+          "Bash",
+          "C",
+          "C++",
+          "Console",
+          "INI",
+          "JSON",
+          "PowerShell",
+          "Python",
+          "Python transcript",
+          "SQL",
+          "Text",
+          "XML",
+          "YAML",
+          "asdl",
+          "batch",
+          "doscon",
+          "json5",
+          "none",
+          "peg",
+          "ps1con"
+        ],
+        "available": true,
+        "seconds": 27.3,
+        "attribution": "&copy; 2001 Python Software Foundation<br>\n      Licensed under the PSF License."
+      },
+      {
+        "name": "NumPy",
+        "edition": "numpy~2.5",
+        "blocks": 3713,
+        "status": "3,713 distinct source blocks \u00b7 2,177 pages \u00b7 NumPy complete collection",
+        "languages": [
+          "Bash",
+          "C",
+          "C++",
+          "INI",
+          "JSON",
+          "PowerShell",
+          "Python",
+          "Python transcript",
+          "TOML",
+          "Text",
+          "YAML",
+          "bat",
+          "cmake",
+          "cython",
+          "fortran",
+          "matlab",
+          "md",
+          "meson",
+          "none",
+          "reST"
+        ],
+        "available": true,
+        "seconds": 23.8,
+        "attribution": "&copy; 2005&ndash;2026 NumPy Developers<br>\n      Licensed under the 3-clause BSD License."
+      },
+      {
+        "name": "pandas",
+        "edition": "pandas~3",
+        "blocks": 5264,
+        "status": "5,264 distinct source blocks \u00b7 2,228 pages \u00b7 pandas complete collection",
+        "languages": [
+          "Python",
+          "Python transcript"
+        ],
+        "available": true,
+        "seconds": 13.5,
+        "attribution": "&copy; 2008&ndash;2011, AQR Capital Management, LLC, Lambda Foundry, Inc. and PyData Development Team<br>\n      &copy; 2011&ndash;2025, Open source contributors<br>\n      Licensed under the 3-clause BSD License."
+      },
+      {
+        "name": "scikit-learn",
+        "edition": "scikit_learn",
+        "blocks": 3168,
+        "status": "3,168 distinct source blocks \u00b7 944 pages \u00b7 scikit-learn complete collection",
+        "languages": [
+          "Python",
+          "Python transcript",
+          "Text",
+          "none"
+        ],
+        "available": true,
+        "seconds": 65.1,
+        "attribution": "&copy; 2007&ndash;2026 The scikit-learn developers<br>\n      Licensed under the 3-clause BSD License."
+      },
+      {
+        "name": "Matplotlib",
+        "edition": "matplotlib",
+        "blocks": 421,
+        "status": "421 distinct source blocks \u00b7 1,062 pages \u00b7 Matplotlib complete collection",
+        "languages": [
+          "Python",
+          "Python transcript",
+          "none"
+        ],
+        "available": true,
+        "seconds": 41.4,
+        "attribution": "&copy; 2012&ndash;2026 Matplotlib Development Team. All rights reserved.<br>\n      Licensed under the Matplotlib License Agreement."
+      },
+      {
+        "name": "Requests",
+        "edition": "requests",
+        "blocks": 13,
+        "status": "13 distinct source blocks \u00b7 1 pages \u00b7 Requests complete collection",
+        "languages": [
+          "Python",
+          "Python transcript"
+        ],
+        "available": true,
+        "seconds": 0.7,
+        "attribution": "&copy; 2011-2026 Kenneth Reitz and other contributors<br>\n      Licensed under the Apache license."
+      },
+      {
+        "name": "pytest",
+        "edition": "pytest",
+        "blocks": 731,
+        "status": "731 distinct source blocks \u00b7 49 pages \u00b7 pytest complete collection",
+        "languages": [
+          "Bash",
+          "Console",
+          "INI",
+          "Python",
+          "Python transcript",
+          "TOML",
+          "Text",
+          "XML",
+          "pytest"
+        ],
+        "available": true,
+        "seconds": 2.1,
+        "attribution": "&copy; 2015&ndash;2026 Holger Krekel and pytest-dev team<br>\n      Licensed under the MIT License."
+      },
+      {
+        "name": "Flask",
+        "edition": "flask",
+        "blocks": 460,
+        "status": "460 distinct source blocks \u00b7 59 pages \u00b7 Flask complete collection",
+        "languages": [
+          "Bash",
+          "Console",
+          "HTML / CSS",
+          "JavaScript",
+          "Python",
+          "Python transcript",
+          "TOML",
+          "Text",
+          "apache",
+          "html+jinja",
+          "jinja",
+          "nginx",
+          "pytb"
+        ],
+        "available": true,
+        "seconds": 1.7,
+        "attribution": "&copy; 2010 Pallets<br>\n      Licensed under the BSD 3-clause License."
+      },
+      {
+        "name": "Django",
+        "edition": "django~6.1",
+        "blocks": 3595,
+        "status": "3,595 distinct source blocks \u00b7 239 pages \u00b7 Django complete collection",
+        "languages": [
+          "Bash",
+          "Console",
+          "HTML / CSS",
+          "INI",
+          "JavaScript",
+          "Python",
+          "Python transcript",
+          "SQL",
+          "TOML",
+          "Text",
+          "XML",
+          "YAML",
+          "apache",
+          "bat",
+          "diff",
+          "doscon",
+          "html+jinja",
+          "jinja",
+          "markup",
+          "nginx",
+          "none",
+          "po",
+          "psql",
+          "pytb",
+          "rst",
+          "sqlite3",
+          "xml+django"
+        ],
+        "available": true,
+        "seconds": 8.9,
+        "attribution": "&copy; Django Software Foundation and individual contributors<br>\n      Licensed under the BSD License."
+      },
+      {
+        "name": "FastAPI",
+        "edition": "fastapi",
+        "blocks": 0,
+        "available": false,
+        "error": "The read operation timed out"
+      },
+      {
+        "name": "JavaScript",
+        "edition": "javascript",
+        "blocks": 5661,
+        "status": "5,661 distinct source blocks \u00b7 1,301 pages \u00b7 JavaScript complete collection",
+        "languages": [
+          "HTML / CSS",
+          "HTTP",
+          "JSON",
+          "Java",
+          "JavaScript",
+          "TypeScript",
+          "diff",
+          "regex",
+          "url",
+          "webidl"
+        ],
+        "available": true,
+        "seconds": 13.5,
+        "attribution": "&copy; 2005&ndash;2025 MDN contributors.<br>\n      Licensed under the Creative Commons Attribution-ShareAlike License v2.5 or later."
+      },
+      {
+        "name": "Node.js",
+        "edition": "node",
+        "blocks": 0,
+        "available": false,
+        "error": "The read operation timed out"
+      },
+      {
+        "name": "lodash",
+        "edition": "lodash~4",
+        "blocks": 306,
+        "status": "306 distinct source blocks \u00b7 1 pages \u00b7 lodash complete collection",
+        "languages": [
+          "JavaScript"
+        ],
+        "available": true,
+        "seconds": 0.6,
+        "attribution": "&copy; JS Foundation and other contributors<br>\n      Licensed under the MIT License."
+      },
+      {
+        "name": "React",
+        "edition": "react",
+        "blocks": 1717,
+        "status": "1,717 distinct source blocks \u00b7 179 pages \u00b7 React complete collection",
+        "languages": [
+          "JavaScript"
+        ],
+        "available": true,
+        "seconds": 8.7,
+        "attribution": "&copy; 2013&ndash;present Facebook Inc.<br>\n      Licensed under the Creative Commons Attribution 4.0 International Public License."
+      },
+      {
+        "name": "Express",
+        "edition": "express",
+        "blocks": 341,
+        "status": "341 distinct source blocks \u00b7 24 pages \u00b7 Express complete collection",
+        "languages": [
+          "JavaScript",
+          "plain",
+          "pug"
+        ],
+        "available": true,
+        "seconds": 0.7,
+        "attribution": "&copy; 2017 StrongLoop, IBM, and other expressjs.com contributors.<br>\n      Licensed under the Creative Commons Attribution-ShareAlike License v3.0."
+      },
+      {
+        "name": "jQuery",
+        "edition": "jquery",
+        "blocks": 1080,
+        "status": "1,080 distinct source blocks \u00b7 419 pages \u00b7 jQuery complete collection",
+        "languages": [
+          "JavaScript",
+          "markup"
+        ],
+        "available": true,
+        "seconds": 2.0,
+        "attribution": "&copy; The jQuery Foundation and other contributors<br>\n      Licensed under the MIT License."
+      },
+      {
+        "name": "TypeScript",
+        "edition": "typescript",
+        "blocks": 1390,
+        "status": "1,390 distinct source blocks \u00b7 79 pages \u00b7 TypeScript complete collection",
+        "languages": [
+          "Bash",
+          "C#",
+          "HTML / CSS",
+          "JSON",
+          "JavaScript",
+          "TypeScript",
+          "XML",
+          "diff",
+          "jsonc",
+          "txt",
+          "typescript+html"
+        ],
+        "available": true,
+        "seconds": 1.7,
+        "attribution": "&copy; 2012-2026 Microsoft<br>\n      Licensed under the Apache License, Version 2.0."
+      },
+      {
+        "name": "CMake",
+        "edition": "cmake",
+        "blocks": 2143,
+        "status": "2,143 distinct source blocks \u00b7 2,187 pages \u00b7 CMake complete collection",
+        "languages": [
+          "Bash",
+          "C",
+          "C++",
+          "CMake",
+          "Console",
+          "JSON",
+          "JavaScript",
+          "Text",
+          "XML",
+          "YAML",
+          "cmake",
+          "make",
+          "matlab",
+          "none",
+          "po",
+          "proto"
+        ],
+        "available": true,
+        "seconds": 9.0,
+        "attribution": "&copy; 2000&ndash;2026 Kitware, Inc. and Contributors<br>\n      Licensed under the BSD 3-clause License."
+      },
+      {
+        "name": "C",
+        "edition": "c",
+        "blocks": 2137,
+        "status": "2,137 distinct source blocks \u00b7 642 pages \u00b7 C complete collection",
+        "languages": [
+          "C"
+        ],
+        "available": true,
+        "seconds": 8.8,
+        "attribution": "&copy; cppreference.com<br>\n      Licensed under the Creative Commons Attribution-ShareAlike Unported License v3.0."
+      },
+      {
+        "name": "C++",
+        "edition": "cpp",
+        "blocks": 18479,
+        "status": "18,479 distinct source blocks \u00b7 5,658 pages \u00b7 C++ complete collection",
+        "languages": [
+          "C"
+        ],
+        "available": true,
+        "seconds": 59.0,
+        "attribution": "&copy; cppreference.com<br>\n      Licensed under the Creative Commons Attribution-ShareAlike Unported License v3.0."
+      },
+      {
+        "name": "Go",
+        "edition": "go",
+        "blocks": 8446,
+        "status": "8,446 distinct source blocks \u00b7 199 pages \u00b7 Go complete collection",
+        "languages": [
+          "Go"
+        ],
+        "available": true,
+        "seconds": 4.5,
+        "attribution": "&copy; Google, Inc.<br>\n      Licensed under the Creative Commons Attribution License 3.0."
+      },
+      {
+        "name": "Rust",
+        "edition": "rust",
+        "blocks": 45029,
+        "status": "45,029 distinct source blocks \u00b7 2,894 pages \u00b7 Rust complete collection",
+        "languages": [
+          "Bash",
+          "C",
+          "Console",
+          "Python",
+          "Rust",
+          "Text",
+          "asm",
+          "error",
+          "no",
+          "should_fail",
+          "test",
+          "txt"
+        ],
+        "available": true,
+        "seconds": 74.1,
+        "attribution": "&copy; 2010 The Rust Project Developers<br>\n      Licensed under the Apache License, Version 2.0 or the MIT license, at your option."
+      },
+      {
+        "name": "Ruby",
+        "edition": "ruby~4.0",
+        "blocks": 8878,
+        "status": "8,878 distinct source blocks \u00b7 421 pages \u00b7 Ruby complete collection",
+        "languages": [
+          "Bash",
+          "C",
+          "Ruby"
+        ],
+        "available": true,
+        "seconds": 11.0,
+        "attribution": "Ruby Core &copy; 1993&ndash;2025 Yukihiro Matsumoto<br>\n      Licensed under the Ruby License.<br>\n      Ruby Standard Library &copy; contributors<br>\n      Licensed under their own licenses."
+      },
+      {
+        "name": "PHP",
+        "edition": "php",
+        "blocks": 17895,
+        "status": "17,895 distinct source blocks \u00b7 7,793 pages \u00b7 PHP complete collection",
+        "languages": [
+          "Bash",
+          "PHP"
+        ],
+        "available": true,
+        "seconds": 26.7,
+        "attribution": "&copy; 1997&ndash;2025 The PHP Documentation Group<br>\n      Licensed under the Creative Commons Attribution License v3.0 or later."
+      },
+      {
+        "name": "SQLite",
+        "edition": "sqlite",
+        "blocks": 1330,
+        "status": "1,330 distinct source blocks \u00b7 545 pages \u00b7 SQLite complete collection",
+        "languages": [
+          "SQL"
+        ],
+        "available": true,
+        "seconds": 13.1,
+        "attribution": "SQLite is in the Public Domain."
+      },
+      {
+        "name": "Kotlin",
+        "edition": "kotlin~2",
+        "blocks": 15660,
+        "status": "15,660 distinct source blocks \u00b7 4,872 pages \u00b7 Kotlin complete collection",
+        "languages": [
+          "Bash",
+          "C",
+          "HTML / CSS",
+          "HTTP",
+          "INI",
+          "JSON",
+          "Java",
+          "JavaScript",
+          "Kotlin",
+          "Ruby",
+          "SQL",
+          "Swift",
+          "TOML",
+          "TypeScript",
+          "YAML",
+          "groovy",
+          "markdown",
+          "markup",
+          "none",
+          "objectivec",
+          "properties"
+        ],
+        "available": true,
+        "seconds": 91.0,
+        "attribution": "&copy; 2010&ndash;2026 JetBrains s.r.o. and Kotlin Programming Language contributors<br>\n      Licensed under the Apache License, Version 2.0."
+      },
+      {
+        "name": "Dart",
+        "edition": "dart~3",
+        "blocks": 11135,
+        "status": "11,135 distinct source blocks \u00b7 12,898 pages \u00b7 Dart complete collection",
+        "languages": [
+          "Dart"
+        ],
+        "available": true,
+        "seconds": 20.1,
+        "attribution": "&copy; 2012 the Dart project authors<br>\n      Licensed under the BSD 3-Clause \"New\" or \"Revised\" License."
+      },
+      {
+        "name": "R",
+        "edition": "r",
+        "blocks": 0,
+        "available": false,
+        "error": "The read operation timed out"
+      },
+      {
+        "name": "Bash",
+        "edition": "bash",
+        "blocks": 178,
+        "status": "178 distinct source blocks \u00b7 132 pages \u00b7 Bash complete collection",
+        "languages": [
+          "Bash"
+        ],
+        "available": true,
+        "seconds": 1.6,
+        "attribution": "Copyright &copy; 2000, 2001, 2002, 2007, 2008 Free Software Foundation, Inc.<br>\n      Licensed under the GNU Free Documentation License."
+      },
+      {
+        "name": "PowerShell",
+        "edition": "powershell~7.7",
+        "blocks": 6992,
+        "status": "6,992 distinct source blocks \u00b7 472 pages \u00b7 PowerShell complete collection",
+        "languages": [
+          "Bash",
+          "PowerShell"
+        ],
+        "available": true,
+        "seconds": 9.0,
+        "attribution": "&copy; Microsoft Corporation\n    Code licensed under an MIT-style License. Documentation licensed under CC BY 4.0."
+      }
+    ],
+    "collection_count": 30,
+    "successful_collections": 27,
+    "total_distinct_blocks_per_collection": 171148,
+    "count_meaning": "Distinct blocks within each checked collection, summed across collections; not globally deduplicated and not all executable programs."
+  },
+  "count_meaning": "Distinct blocks within each checked collection, summed across collections; not globally deduplicated and not all executable programs."
+}

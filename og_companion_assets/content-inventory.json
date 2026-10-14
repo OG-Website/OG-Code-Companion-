@@ -1,10 +1,10 @@
 {
-  "verified_at": "2026-10-08T22:11:56.467351+01:00",
-  "version": "2.1.0",
+  "verified_at": "2026-10-14T09:28:43.575111+01:00",
+  "version": "2.2.0",
   "included": {
-    "teaching_libraries": 30,
-    "teaching_snippets": 30,
-    "complete_program_foundations": 1,
+    "teaching_libraries": 31,
+    "teaching_snippets": 31,
+    "complete_program_foundations": 2,
     "teaching_languages": [
       "Bash",
       "C#",
@@ -21,7 +21,7 @@
       "SQL",
       "TypeScript"
     ],
-    "language_selector_options": 21,
+    "language_selector_options": 22,
     "registry_connectors": [
       "Maven Central",
       "NuGet",
@@ -333,5 +333,22 @@
     }
   ],
   "all_online_snippets_total": null,
-  "online_total_explanation": "No complete global count is verified. Source code blocks are loaded per selected library/page; the UI displays the loaded count. These include usage examples, commands, configuration, transcripts and declarations, not all complete programs."
+  "online_total_explanation": "No complete global count is verified. Source code blocks are loaded per selected library/page; the UI displays the loaded count. These include usage examples, commands, configuration, transcripts and declarations, not all complete programs.",
+  "source_inspected_at": "2026-10-13",
+  "source_verification": {
+    "date": "14/10/2026",
+    "tests_passed": 106,
+    "windows_executable_rebuilt": true,
+    "interface": "PySide6 / Qt 6.10.1",
+    "tabs": [
+      "Build code",
+      "Browse libraries",
+      "Local models"
+    ],
+    "offline_installation_check": true,
+    "branding": "Supplied OG Code Companion PNG and ICO; circular background with smooth scaling",
+    "local_models": "Ollama, LM Studio native/legacy and OpenAI-compatible localhost services; explicit connection; service URLs saved per user, tokens held in memory only",
+    "recipient_boundary": "Relocation on the development computer; clean second computer and live LM Studio remain separate checks",
+    "window_placement": "Fits the available monitor work area at startup and remembers the user-selected monitor"
+  }
 }

@@ -1,43 +1,44 @@
 # OG Companion
 
-OG Web.site's Windows coding workbench: find libraries, explore public documentation examples and build on editable code.
+<img src="og_companion_assets/OG%20Code%20Companion%20logo.png" width="180" alt="OG Companion logo">
+
+Describe what you want to build, get editable starter code and guidance, explore library examples, and connect your own local models. OG Companion 2.2 uses three tabs, a smoothly scaled circular OG background and readable translucent controls.
 
 ## Download and start
 
-Download **OG Companion.zip** from [Releases](https://github.com/OG-Website/OG-Code-Companion-/releases/latest). Extract it, open the OG Companion folder and double-click **OG Companion.exe** or **Start OG Companion.cmd**. Keep the complete folder together. Python and Tcl/Tk are bundled in the Windows package.
+Download **OG Companion.zip** from [Releases](https://github.com/OG-Website/OG-Code-Companion-/releases/latest). Extract it and open **OG Companion.exe** or **Start OG Companion.cmd**. Keep the complete folder together: Python and Qt are included in the Windows 64-bit package.
 
-## Build on your code
+## Build code
 
-**Clear search** clears the description, keywords, results and example selection while retaining the editor. **Clear code** separately starts a new workbench and asks before discarding unsaved changes.
+Type a program description, choose a language and click **Get starter code / Update**. **Code** holds editable source and **How to build it** explains the approach. CSV-to-JSON and file-integrity foundations work without AI; matching reference snippets and real documentation examples are also available. Custom programs and expansion use a model you explicitly connect.
 
-**Build / update code** builds from an empty editor or sends your current code with a changed requirement. **Expand code** starts a new request immediately. Click it again after completion to request a further useful addition to the latest code. **Undo update** restores the preceding code change. Searches and library selections retain the code until you explicitly load another example.
+**New request** retains the editor. **Clear code** asks before discarding unsaved work. Updates include your current code, **Expand code** requests another addition, and **Undo update** restores the preceding source. Ctrl+Enter builds and Ctrl+S saves.
 
-Custom building and expansion require a separately installed [Ollama](https://ollama.com/) service and local model. The supplied CSV-to-JSON foundation and teaching examples work without AI. Model output is a draft: unchanged responses are rejected, Python syntax is checked and existing top-level Python function/class names must remain, but these checks do not prove that every requirement or behaviour is correct. Test saved code before using it. OG Companion does not execute generated or retrieved code.
+## Browse libraries
 
-## Content and sources
+Explore seven package registries, the DevDocs catalogue and public repositories, or load a public source URL. Get examples from a selected library, browse further result pages, load complete collections and export source blocks with their attribution. Browsing and retrieval do not require AI.
 
-The included snapshot contains **30 editable teaching snippets across 14 languages**, one complete CSV-to-JSON foundation and **244 documentation collection titles across 837 editions**. Editions include versions, languages, tools and frameworks; they are not 837 unique libraries. The language selector has 21 choices and seven package-registry connectors cover 11 choices directly. Other languages can use public repository discovery and source URLs.
+The supplied content includes **31 teaching snippets across 14 languages**, two complete Python foundations, **244 documentation titles across 837 editions**, and **14 licensed collections containing 84,512 summed source blocks**. Editions are versions and documentation sets. Blocks include commands, configuration and transcripts; they are not a count of runnable programs. The global online total is unmeasured. The selector has 22 language/tool choices, including CMake. Source terms and provider availability apply.
 
-Online examples are retrieved on demand, beyond the bundled catalogue. The total across online sources is unmeasured. Each loaded collection reports its actual distinct block count; commands, configuration, transcripts and API declarations are distinguished from executable source. The guide and `og_companion_assets/content-inventory.json` contain the checked counts and dates. Third-party source and licence terms apply.
+## Local models
 
-## Source and verification
+Discover the recipient's running Ollama, LM Studio or compatible localhost service, including recognised Windows services on non-default ports. Choose a model from the table and connect it explicitly. Add a service URL for another local endpoint. Optional service tokens stay in memory for the session; model weights and credentials are not shipped. Supported LM Studio native APIs list downloaded as well as loaded models. Embedding models are identified separately from code-capable language models.
 
-Run with Python 3 and Tcl/Tk:
+A serving runtime must be available; the app does not directly open arbitrary weight files. Without AI, supplied/cached libraries, source retrieval, editing, copying and saving remain available. A local endpoint may itself use a remotely hosted model according to the recipient's service configuration.
 
-```powershell
-py -3 og_companion.py
-py -3 -m unittest -v og_companion_tests.py
-```
-
-The portable build was checked with Python 3.14.0 and PyInstaller 6.17.0 on Windows 64-bit. To build from this repository:
+## Run from source or build
 
 ```powershell
 py -3 -m pip install -r requirements-build.txt
+py -3 og_companion.py
+py -3 -m unittest -v og_companion_tests.py
 & '.\Build OG Companion.ps1'
 ```
 
-The build script runs the source tests, bundles the interpreter and resources, checks the executable and creates the complete ZIP. Source files are editable; an existing executable needs rebuilding to include source changes.
+Version 2.2 source passed **106 automated tests** on 14 October 2026. The packaged Windows executable passed the offline installation check for both foundations, tabs, clearing and undo. The interface was inspected at 1280 x 720 and 960 x 700 logical sizes. Recheck an extracted package with `OG Companion.exe --check-installation report.json`.
 
-The Read Me and technical specification cover discovery, source retrieval, caching, controls, generation and recipient checks. A clean second computer and other operating systems remain recipient/platform checks.
+Model output is a draft. Python syntax, explicit no-prompts requests and update preservation are checked, but arbitrary behaviour still needs tests. Retrieved/generated code is never automatically executed. A clean second computer and live LM Studio remain separate checks. Runtime notices are in `og_companion_assets/runtime-licences`; collection terms are in `og_companion_assets/source-licences`.
+
+The Read Me, technical specification and [portfolios](Portfolios/) explain operation, architecture and the commercial evidence boundary.
 
 Built by Rob Johnston for OG Web.site.

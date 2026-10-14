@@ -1,0 +1,17 @@
+OG Companion uses Python 3.14 and unmodified Qt 6.10.1 / PySide6 6.10.1 / Shiboken6 6.10.1 runtime components.
+
+Qt and Qt for Python are developed by The Qt Company Ltd and contributors.
+The Qt Core, GUI and Widgets components and PySide6/Shiboken6 bindings are used under their applicable GNU LGPL v3 terms. The LGPL v3 and incorporated GPL v3 texts accompany this notice. Component-specific third-party terms also apply; see the original source distributions.
+
+The runtime is dynamically linked. Its DLLs and plugins are separate files under OG Runtime. Recipients may replace the LGPL runtime components with compatible modified versions and debug those modifications. No restriction on reverse engineering for debugging such library modifications is imposed by OG Companion.
+
+Original component source and licensing information:
+https://code.qt.io/qt/qtbase.git/?h=v6.10.1
+https://code.qt.io/pyside/pyside-setup.git/?h=v6.10.1
+https://download.qt.io/official_releases/qt/6.10/6.10.1/single/
+https://download.qt.io/official_releases/QtForPython/pyside6/PySide6-6.10.1-src/
+https://doc.qt.io/qtforpython-6/licenses.html
+
+OG Companion application source is supplied separately from these runtime components. Third-party documentation collections retain their own source licence files under og_companion_assets/source-licences. These runtime notices do not change the ownership or licence of OG branding or third-party reference material.
+
+The Python runtime licence is included as OG Runtime/Python-Licence.txt.
