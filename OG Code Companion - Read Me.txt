@@ -1,0 +1,34 @@
+OG Code Companion 2.4 - OG Web.site
+19/10/2026
+
+Open OG Code Companion.exe or Start OG Code Companion.cmd. Keep the complete extracted folder together. Python and Qt for the desktop application are bundled.
+
+BUILD FROM LIBRARIES WITHOUT AI
+Choose the language and describe a feature or library. Find code / Update offers a supplied starter or source references. Find more snippets searches matching documentation and package sources. Browse libraries provides package-registry, DevDocs edition/topic and public GitHub discovery, paged results and public source-URL loading. Internet access is required for uncached sources; supplied and cached sources work offline. Search breadth is not a guarantee of examples for every package or task.
+
+PREVIEW, UNDERSTAND AND ADD
+Snippet preview shows code beside purpose, installation/setup, usage steps, code operations, expected results where supplied, extension guidance, source terms and syntax comparisons with Python. Publisher context is shown where available. An unfamiliar fragment's behaviour is not invented.
+Choose Add snippet to code to append it without clearing your program. Repeat with different snippets, adapt names and call reusable functions where needed. Replace code with snippet is separate. Undo update restores code and explanations. New request keeps the editor; Clear code protects unsaved work. A connected AI model remains optional for custom transformations.
+
+CHECK AND TRY
+Check syntax reports Python parser errors with locations and suggested checks. Node.js, Ruby, PHP, Bash and TypeScript checks use installed tools where configured. TypeScript also checks types. Syntax is different from runtime correctness.
+Run code asks you to confirm the reviewed source. Supported installed runtimes run in a child process with output/errors, standard input, Stop, a 30-second limit and a 1 MB output limit. Arguments are a JSON list of strings. Choose a working folder containing input files if needed. No command shell or dependency installer is invoked automatically. The code runs with your user permissions; this is not a sandbox.
+JavaScript using document/window opens a browser preview; HTML/CSS can also be previewed. Browser diagnostics and visible behaviour need checking separately. Browser previews are outside the child-process limits. Some fragments require a whole project, dependencies or earlier definitions: the app does not automatically integrate arbitrary snippets. Languages without a run adapter show their project/compiler instructions. Additional runtimes and packages are required to run learners' programs; the bundled app runtime only starts the desktop application.
+
+KEEP YOUR PROGRAM
+Project > Save project with explanations saves code, request, explanation and references together. Open project restores them without execution. Save code exports source. Save all examples exports matching reference blocks and their attribution. No automatic session recovery is supplied; save before closing.
+
+COVERAGE AND CONNECTIONS
+55 teaching snippets cover all 22 language/tool choices, with two complete Python foundations and 22 language/tool selector choices. Seven package-registry connectors, 244 bundled documentation titles across 837 editions and public repositories provide on-demand discovery. Fourteen supplied documentation collections contain 84,512 summed source blocks, including commands/configuration/transcripts. This is not a count of runnable programs or a complete global library count.
+Models / API discovers your Ollama, LM Studio or compatible localhost services. Explicitly connect a language model if wanted. Model weights, credentials and dependencies are not distributed. Optional service tokens remain in memory for the session. See README.md in the source repository for the full recipient model setup guide.
+
+VERIFICATION AND LIMITS
+Use "OG Code Companion.exe" --check-installation "%TEMP%\og-code-companion-check.json" for packaged offline checks. Source tests: py -3 -m unittest -v og_companion_tests.py.
+A clean second computer, every language runtime, all provider services and arbitrary downloaded code remain separate acceptance checks. Generated and downloaded source is never run automatically. No package installation, code-signing or sandbox is supplied. Preserve the included runtime/source licences when sharing.
+
+BASIC LIBRARIES AND HOSTED API MODELS
+Changing language immediately refreshes its supplied examples. Every selector option has a built-in basic example; C includes stdio.h and string.h. An empty package search restores the current language's supplied list. Baseline examples load without network access.
+
+Models / API > Add API model accepts a provider/protocol, public HTTPS API base URL, exact model ID and session-only API key. OpenAI Responses, Anthropic Messages, Gemini through its documented OpenAI-compatible endpoint, and custom Chat Completions/Responses-compatible APIs are supported. Not every proprietary protocol or model is guaranteed compatible. Custom authentication can use Bearer, api-key or x-api-key. Keys are not written into settings, projects or shared packages; Forget API keys removes them from this session.
+
+Configuration does not contact the API. Generation/expansion sends the task and current code to the chosen provider; provider charges and data policies apply. API adapters have fixture-based verification; live account access and model quality require the recipient's own key. Local Ollama/LM Studio connections remain available.

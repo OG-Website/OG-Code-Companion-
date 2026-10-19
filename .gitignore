@@ -4,9 +4,12 @@ __pycache__/
 dist/
 build/
 OG Runtime/
-OG Companion.exe
-OG Companion.zip
+OG Code Companion.exe
+OG Code Companion.zip
 *.spec
 .venv/
 .env
 .env.*
+
+OG Companion.exe
+OG Companion.zip

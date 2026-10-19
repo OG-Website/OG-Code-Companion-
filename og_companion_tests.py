@@ -364,7 +364,7 @@ class WorkbenchControlTests(unittest.TestCase):
         while self.app.busy and time.monotonic()<deadline:self.ui.application().processEvents();time.sleep(.01)
         self.assertFalse(self.app.busy,'Worker did not finish');self.ui.application().processEvents()
     def test_three_main_tabs(self):
-        self.assertEqual([self.app.tabs.tabText(i) for i in range(3)],['Build code','Browse libraries','Local models'])
+        self.assertEqual([self.app.tabs.tabText(i) for i in range(3)],['Build code','Browse libraries','Models / API'])
     def test_clear_request_keeps_user_code(self):
         self.app.set_code('print("mine")','Python','My program');self.app.editor_dirty=True
         self.describe('CSV');self.app.keywords.setPlainText('csv');self.app.clear_search_button.click()
@@ -408,8 +408,10 @@ class WorkbenchControlTests(unittest.TestCase):
         with patch.object(self.ui,'generate_snippet') as generate:self.app.generate_button.click()
         generate.assert_not_called();self.assertEqual(self.code(),'print(1)')
     def test_missing_connection_retains_code(self):
-        self.app.set_code('print(1)','Python','Test');self.app.connected_model=None;self.describe('Add output');self.app.expand_button.click()
-        self.assertEqual(self.code(),'print(1)');self.assertIn('Connect a local model',self.app.status.text())
+        self.app.set_code('print(1)','Python','Test');self.app.connected_model=None;self.describe('Add output')
+        with patch.object(self.ui,'discover_task_examples',return_value=([],[],'No matching source examples')) as discover:
+            self.app.expand_button.click();self.wait_request()
+        self.assertEqual(self.code(),'print(1)');discover.assert_called_once()
     def test_failed_model_response_retains_user_edits(self):
         self.app.set_code('print("mine")','Python','Test');self.app.editor_dirty=True;self.describe('Add output')
         with patch.object(self.ui,'generate_snippet',side_effect=RuntimeError('No code change')):
@@ -436,9 +438,10 @@ class WorkbenchControlTests(unittest.TestCase):
     def test_offline_documentation_reference_without_model(self):
         self.app.connected_model=None;self.describe('pytest fixtures');self.app.online.setChecked(False)
         example={'code':'def test_example():\n    assert 1 + 1 == 2','language':'Python','title':'Example','url':'https://devdocs.io/pytest','licence':'MIT'}
-        with patch.object(self.ui,'collection_examples',return_value=([example],'Cached examples')):
+        with patch.object(self.ui,'discover_task_examples',return_value=([],[example],'Cached examples')):
             self.app.generate_button.click();self.wait_request()
-        self.assertIn('def test_example',self.code());self.assertEqual(self.app.examples,[example])
+        self.assertEqual(self.code(),'');self.assertIn('def test_example',self.app.preview_code.toPlainText());self.assertEqual(self.app.examples,[example])
+        self.app.add_button.click();self.assertIn('def test_example',self.code())
     def test_discovery_lists_all_recipient_models_without_connecting(self):
         self.app.connected_model=None
         models=[{'name':'one','endpoint':'http://localhost:11434','provider':'Ollama'},{'name':'two','endpoint':'http://localhost:1234','provider':'LM Studio','loaded':False}]
@@ -623,6 +626,212 @@ class CompleteCollectionTests(unittest.TestCase):
 
     def test_cmake_selector_and_save_extension(self):
         self.assertIn('CMake',search.LANGUAGES);self.assertEqual(search.EXTENSIONS['CMake'],'.cmake')
+
+
+class IncrementalWorkbenchTests(unittest.TestCase):
+    setUp=WorkbenchControlTests.setUp
+    tearDown=WorkbenchControlTests.tearDown
+    code=WorkbenchControlTests.code
+    describe=WorkbenchControlTests.describe
+    def example(self,code,language='Python',title='Test example'):
+        return {'code':code,'language':language,'title':title,'url':'https://example.com/docs','licence':'Test fixture'}
+    def test_wrong_language_source_never_enters_editor(self):
+        self.app.language_box.setCurrentText('JavaScript');self.app.set_code('console.log("mine")','JavaScript','Mine')
+        self.app.show_examples([self.example('import click','Python')],'Click collection')
+        self.assertFalse(self.app.examples);self.assertEqual(self.code(),'console.log("mine")');self.assertIn('No matching JavaScript',self.app.status.text())
+    def test_preview_preserves_saved_and_unsaved_code(self):
+        self.app.set_code('print("mine")','Python','Mine');self.app.editor_dirty=True
+        self.app.show_examples([self.example('print("new")')],'Results')
+        self.assertEqual(self.code(),'print("mine")');self.assertTrue(self.app.editor_dirty)
+        self.assertEqual(self.app.preview_code.toPlainText(),'print("new")')
+    def test_two_additions_and_undo_preserve_code_and_teaching(self):
+        self.app.set_code('value = 10','Python','Mine');self.app.set_guidance('Original explanation')
+        self.app.show_examples([self.example('value += 2'),self.example('print(value)')],'Results')
+        self.app.add_button.click();one=self.code();guide=self.app.guidance.toPlainText()
+        self.app.select_example(1);self.app.add_button.click();two=self.code()
+        self.assertTrue(two.startswith('value = 10'));self.assertIn('value += 2',two);self.assertIn('print(value)',two)
+        result=subprocess.run([sys.executable,'-c',two],capture_output=True,text=True,timeout=5)
+        self.assertEqual(result.returncode,0);self.assertEqual(result.stdout.strip(),'12')
+        self.app.undo_button.click();self.assertEqual(self.code(),one);self.assertEqual(self.app.guidance.toPlainText(),guide)
+    def test_source_explanation_has_usage_syntax_and_provenance(self):
+        self.app.show_examples([self.example('def double(value):\n    return value * 2')],'Results')
+        text=self.app.preview_explanation.toPlainText()
+        for phrase in ('Purpose','Setup','How to use','What the code does','double(value)','Expected result','Syntax','How to extend','https://example.com/docs'):
+            self.assertIn(phrase,text)
+    def test_python_syntax_error_explained_at_line(self):
+        self.app.set_code('if True\n    print(1)','Python','Mine');self.app.check_button.click()
+        text=self.app.run_output.toPlainText();self.assertIn('line 1',text);self.assertIn('colon',text);self.assertIsNone(self.app.run_process)
+    def wait_run(self):
+        deadline=time.monotonic()+8
+        while self.app.run_process is not None and time.monotonic()<deadline:
+            self.ui.application().processEvents();time.sleep(.01)
+        self.assertIsNone(self.app.run_process,'Run did not finish')
+    def test_actual_python_run_and_runtime_error_explanation(self):
+        self.app.set_code('print(6 * 7)','Python','Mine')
+        with patch.object(self.ui.QMessageBox,'question',return_value=self.ui.QMessageBox.StandardButton.Yes):self.app.run_button.click()
+        self.wait_run();self.assertIn('42',self.app.run_output.toPlainText());self.assertIn('exit code 0',self.app.run_output.toPlainText())
+        self.app.set_code('print(unknown_name)','Python','Mine')
+        with patch.object(self.ui.QMessageBox,'question',return_value=self.ui.QMessageBox.StandardButton.Yes):self.app.run_button.click()
+        self.wait_run();self.assertIn('NameError',self.app.run_output.toPlainText());self.assertIn('definition order',self.app.run_output.toPlainText())
+    def test_actual_node_syntax_error_and_python_comparison(self):
+        import shutil
+        if not shutil.which('node'):self.skipTest('Node.js is not installed')
+        self.app.set_code('const count = ;','JavaScript','Mine');self.app.check_button.click();self.wait_run()
+        text=self.app.run_output.toPlainText();self.assertIn('SyntaxError',text);self.assertIn('Compared with Python',text);self.assertIn('Unexpected token',text)
+    def test_run_rejection_does_not_execute(self):
+        self.app.set_code('print(1)','Python','Mine')
+        with patch.object(self.ui.QMessageBox,'question',return_value=self.ui.QMessageBox.StandardButton.No):self.app.run_button.click()
+        self.assertIsNone(self.app.run_process)
+    def test_run_stop_keeps_editor(self):
+        code='while True:\n    pass';self.app.set_code(code,'Python','Mine')
+        with patch.object(self.ui.QMessageBox,'question',return_value=self.ui.QMessageBox.StandardButton.Yes):self.app.run_button.click()
+        self.app.stop_button.click();self.wait_run();self.assertEqual(self.code(),code);self.assertIn('did not pass',self.app.run_output.toPlainText())
+    def test_project_roundtrip_retains_explanations_and_request(self):
+        self.app.set_code('print("saved")','Python','Mine');self.app.set_guidance('My explanation and source');self.describe('My request')
+        with tempfile.TemporaryDirectory() as folder:
+            path=str(Path(folder)/'project.json')
+            with patch.object(self.ui.QFileDialog,'getSaveFileName',return_value=(path,'')):self.app.save_project()
+            self.app.set_code('','Python','Empty');self.app.set_guidance('')
+            with patch.object(self.ui.QFileDialog,'getOpenFileName',return_value=(path,'')):self.app.open_project()
+        self.assertEqual(self.code(),'print("saved")');self.assertEqual(self.app.guidance.toPlainText(),'My explanation and source');self.assertEqual(self.app.description.toPlainText(),'My request')
+    def test_dom_button_preview_does_not_use_node(self):
+        self.app.language_box.setCurrentText('JavaScript');self.app.connected_model=None;self.describe('age click me button')
+        self.app.generate_button.click();self.assertIn('createElement',self.app.preview_code.toPlainText());self.assertEqual(self.code(),'')
+        self.app.add_button.click()
+        with patch.object(self.ui.QMessageBox,'question',return_value=self.ui.QMessageBox.StandardButton.Yes),patch.object(self.ui.webbrowser,'open',return_value=True) as opened:
+            self.app.run_button.click()
+        self.assertIsNone(self.app.run_process);self.assertTrue(opened.call_args.args[0].startswith('file:'));self.assertIn('Browser preview',self.app.run_output.toPlainText())
+
+
+class LanguageAndExplanationTests(unittest.TestCase):
+    def test_click_cannot_match_javascript_task(self):
+        docs=sources.documentation_catalogue(online=False)
+        matches=sources.task_docsets('age click me button','JavaScript',docs)
+        self.assertTrue(matches);self.assertEqual(matches[0]['slug'],'dom');self.assertNotIn('click',[d['slug'] for d in matches])
+    def test_every_language_has_teaching_and_python_comparison(self):
+        import og_companion_workbench as workbench
+        for language in search.LANGUAGES:
+            self.assertIn(language,workbench.LANGUAGE_GUIDES)
+            self.assertTrue(workbench.syntax_comparison(language))
+            if language!='Python':self.assertIn('Python',workbench.syntax_comparison(language))
+    def test_html_and_markdown_keep_publisher_context(self):
+        for text in ('<h2>Double values</h2><p>Call double with an integer.</p><pre data-language="python">def double(x):\n    return x * 2</pre>',
+                     '# Double values\nCall double with an integer.\n```python\ndef double(x):\n    return x * 2\n```'):
+            rows=sources.extract_examples(text,'https://example.com','Python');self.assertIn('Call double with an integer',rows[0]['source_context'])
+    def test_missing_runtime_and_shell_metacharacters_are_not_executed(self):
+        import og_companion_workbench as workbench
+        exe,args,error=workbench.runtime_plan('JavaScript','console.log(1)','x & y',find=lambda name:None)
+        self.assertIsNone(exe);self.assertIn('not available',error)
+        exe,args,error=workbench.runtime_plan('JavaScript','console.log(1)','x & y',find=lambda name:'node')
+        self.assertEqual(exe,'node');self.assertEqual(len(args),1);self.assertIn('x & y',args[0])
+    def test_arbitrary_package_examples_reachable_without_ai(self):
+        package=search.package_result('external-tool','JavaScript','npm','A package outside the teaching catalogue','1','https://example.com','npm install external-tool')
+        block={'code':'console.log("external")','language':'JavaScript','title':'Usage','url':'https://example.com'}
+        with patch.object(search,'search_libraries',return_value=([package],'Live registry')),patch.object(sources,'library_examples',return_value=([block],'Live source')):
+            entries,blocks,status=sources.discover_task_examples('external-tool','JavaScript',catalogue=[])
+        self.assertEqual([b['code'] for b in blocks],[block['code']]);self.assertEqual(blocks[0]['library']['name'],'external-tool');self.assertEqual(entries,[package]);self.assertIn('1 matching JavaScript',status)
+
+
+class BasicLanguageTests(unittest.TestCase):
+    def test_all_selector_languages_have_a_complete_basic_example(self):
+        for language in search.LANGUAGES:
+            rows=search.basic_libraries(language)
+            self.assertTrue(rows,language)
+            baseline=next(e for e in rows if e.get('baseline_for')==language)
+            for field in ('snippet','description','install','expected_output','usage'):
+                self.assertTrue(baseline[field],(language,field))
+    def test_python_javascript_sql_and_powershell_basics_execute(self):
+        import shutil,sqlite3
+        rows=search.load_catalogue()
+        baseline=lambda lang:next(e for e in rows if e.get('baseline_for')==lang)
+        python=subprocess.run([sys.executable,'-c',baseline('Python')['snippet']],capture_output=True,text=True,timeout=5)
+        self.assertEqual(python.returncode,0);self.assertEqual(python.stdout.strip(),'Total: 12')
+        from contextlib import closing
+        with closing(sqlite3.connect(':memory:')) as db:self.assertEqual(db.execute(baseline('SQL')['snippet']).fetchone(),(12,))
+        for language,command in [('JavaScript','node'),('PowerShell','pwsh')]:
+            exe=shutil.which(command)
+            if exe:
+                args=[exe,'-e',baseline(language)['snippet']] if language=='JavaScript' else [exe,'-NoProfile','-Command',baseline(language)['snippet']]
+                result=subprocess.run(args,capture_output=True,text=True,timeout=8)
+                self.assertEqual(result.returncode,0,result.stderr);self.assertEqual(result.stdout.strip(),'Total: 12')
+    def test_switching_language_refreshes_basics_without_replacing_code(self):
+        import og_companion as ui
+        app=ui.OGCompanion(discover_models=False)
+        try:
+            app.set_code('print("keep")','Python','Mine');app.language_box.setCurrentText('C')
+            self.assertTrue(app.entries);self.assertTrue(all(e['language']=='C' for e in app.entries));self.assertIn('C stdio.h',[e['name'] for e in app.entries])
+            self.assertEqual(app.output.toPlainText(),'print("keep")')
+            app.keywords.clear();app.description.clear();app.search_button.click();self.assertTrue(app.entries)
+        finally:app.dispose()
+
+
+class HostedProviderTests(unittest.TestCase):
+    def setUp(self):
+        import og_companion_providers as api
+        self.api=api;self.records=[];self.key='fixture-secret-never-real'
+    def tearDown(self):
+        for record in self.records:self.api.forget_hosted(record)
+    def record(self,provider='Custom (OpenAI-compatible)',auth='Bearer'):
+        row=self.api.configure_hosted(provider,self.api.PRESETS[provider][0] or 'https://example.com/v1','test-model',self.key,auth);self.records.append(row);return row
+    def request(self,record,response):
+        from unittest.mock import MagicMock
+        opened=MagicMock();opened.__enter__.return_value.read.return_value=json.dumps(response).encode()
+        with patch.object(self.api,'build_opener') as factory:
+            factory.return_value.open.return_value=opened
+            result=self.api.hosted_generate(record,'System instructions','User source and task',1800)
+            request=factory.return_value.open.call_args.args[0]
+        return result,request
+    def test_openai_responses_request_and_text_extraction(self):
+        result,request=self.request(self.record('OpenAI (Responses)'),{'status':'completed','output':[{'type':'reasoning'},{'type':'message','content':[{'type':'output_text','text':'print(42)'}]}]})
+        payload=json.loads(request.data);self.assertEqual(request.full_url,'https://api.openai.com/v1/responses');self.assertFalse(payload['store']);self.assertEqual(payload['max_output_tokens'],1800)
+        self.assertEqual(result['response'],'print(42)');self.assertEqual(request.get_header('Authorization'),'Bearer '+self.key)
+    def test_anthropic_uses_native_messages_and_version_header(self):
+        result,request=self.request(self.record('Anthropic (Messages)'),{'content':[{'type':'text','text':'print(42)'}],'stop_reason':'end_turn'})
+        payload=json.loads(request.data);self.assertTrue(request.full_url.endswith('/v1/messages'));self.assertEqual(payload['system'],'System instructions');self.assertEqual(request.get_header('X-api-key'),self.key);self.assertTrue(request.get_header('Anthropic-version'))
+    def test_gemini_and_custom_chat_compatible_endpoints(self):
+        for name in ('Gemini (OpenAI-compatible)','Custom (OpenAI-compatible)'):
+            result,request=self.request(self.record(name),{'choices':[{'message':{'content':'print(42)'},'finish_reason':'stop'}]})
+            self.assertTrue(request.full_url.endswith('/chat/completions'));self.assertIn('messages',json.loads(request.data));self.assertEqual(result['response'],'print(42)')
+    def test_custom_api_key_header(self):
+        _,request=self.request(self.record(auth='api-key'),{'choices':[{'message':{'content':'print(42)'}}]})
+        self.assertEqual(request.get_header('Api-key'),self.key);self.assertIsNone(request.get_header('Authorization'))
+    def test_credentials_are_absent_from_records_and_removed_on_forget(self):
+        row=self.record();self.assertNotIn(self.key,json.dumps(row));self.api.forget_hosted(row)
+        with self.assertRaisesRegex(RuntimeError,'no longer available'):self.api.hosted_generate(row,'system','prompt',1)
+    def test_invalid_urls_and_header_injection_rejected(self):
+        for endpoint in ('http://example.com/v1','https://user:password@example.com','https://example.com/?key=secret','https://127.0.0.1/v1'):
+            with self.assertRaises(ValueError):self.api.configure_hosted('Custom (OpenAI-compatible)',endpoint,'model',self.key)
+        with self.assertRaises(ValueError):self.api.configure_hosted('Custom (OpenAI-compatible)','https://example.com','model','secret\nInjected: header')
+    def test_redirects_never_forward_credentials(self):
+        with self.assertRaisesRegex(RuntimeError,'not forwarded'):
+            self.api.NoRedirects().redirect_request(None,None,302,'Found',{},'https://other.example')
+    def test_http_error_does_not_echo_server_body_or_key(self):
+        from io import BytesIO
+        from urllib.error import HTTPError
+        row=self.record()
+        with patch.object(self.api,'build_opener') as factory:
+            factory.return_value.open.side_effect=HTTPError(row['endpoint'],401,'Unauthorised',{},BytesIO(self.key.encode()))
+            with self.assertRaises(RuntimeError) as caught:self.api.hosted_generate(row,'system','prompt',1)
+        self.assertIn('401',str(caught.exception));self.assertNotIn(self.key,str(caught.exception));self.assertEqual(factory.return_value.open.call_count,1)
+    def test_truncated_response_is_rejected_by_generation_gate(self):
+        row=self.record('OpenAI (Responses)')
+        with patch.object(self.api,'hosted_generate',return_value={'response':'print(42)','done_reason':'length'}):
+            with self.assertRaisesRegex(RuntimeError,'output limit'):search.generate_snippet('Print 42','Python','test-model',hosted_connection=row)
+    def test_cloud_expansion_keeps_existing_code_context(self):
+        row=self.record()
+        with patch.object(self.api,'hosted_generate',return_value={'response':'print(1)\nprint(2)','done_reason':'stop'}) as generate:
+            code=search.generate_snippet('Also print two','Python','test-model',existing_code='print(1)',hosted_connection=row)
+        self.assertIn('print(1)',generate.call_args.args[2]);self.assertIn('print(2)',code)
+    def test_api_configuration_does_not_contact_provider_and_refresh_keeps_it(self):
+        import og_companion as ui
+        app=ui.OGCompanion(discover_models=False)
+        try:
+            row=self.record()
+            with patch.object(self.api,'build_opener') as network:app.add_api_record(row)
+            network.assert_not_called();self.assertTrue(app.connected_model['hosted']);self.assertIn('Not contacted yet',app.model_note.text())
+            app.results.put(('models',True,[]));app.poll();self.assertEqual(app.model_records,[row])
+            app.forget_api_models();self.assertFalse(app.api_models);self.assertIsNone(app.connected_model)
+        finally:app.dispose()
 
 
 if __name__=='__main__':unittest.main()

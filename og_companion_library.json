@@ -618,6 +618,217 @@
       "docs": "https://docs.python.org/3/library/pathlib.html",
       "install": "Included with Python",
       "snippet": "from pathlib import Path\n\nfolder = Path('my-files').resolve()\nif not folder.is_dir():\n    raise ValueError('Choose an existing folder.')\nfor path in folder.rglob('*'):\n    if path.is_file() and not path.is_symlink():\n        print(path.relative_to(folder))\n"
+    },
+    {
+      "name": "Browser button",
+      "languages": [
+        "JavaScript"
+      ],
+      "description": "Create a visible browser button and count its clicks. Use this for the first interactive control on a web page; no third-party library is required.",
+      "tags": [
+        "button",
+        "click",
+        "dom",
+        "event",
+        "browser",
+        "web",
+        "element"
+      ],
+      "docs": "https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener",
+      "install": "Built into a modern web browser; document is unavailable in Node.js.",
+      "snippet": "const ogButton = document.createElement(\"button\");\nogButton.textContent = \"Click me\";\ndocument.body.appendChild(ogButton);\n\nlet ogClickCount = 0;\nogButton.addEventListener(\"click\", () => {\n    ogClickCount += 1;\n    ogButton.textContent = `Clicked ${ogClickCount} time(s)`;\n});\n",
+      "explanation": "The DOM represents the browser page as objects. createElement creates a button; appendChild makes it visible. addEventListener connects a click to a callback. let stores a count that changes; const keeps the button binding fixed while allowing its properties to change.",
+      "usage": "1. Select JavaScript and add this snippet to an empty workbench.\n2. Choose Check syntax, then Run code and confirm the reviewed code. DOM code opens in Web preview.\n3. Click the button twice and compare its label with the expected result.\n4. Add another event handler or a second control using different variable names. Keep the original button code.",
+      "expected_output": "Initially: Click me. After the first click: Clicked 1 time(s). After the second: Clicked 2 time(s). The label changes only when clicked."
+    },
+    {
+      "name": "Python built-ins",
+      "languages": ["Python"],
+      "baseline_for": "Python",
+      "description": "Create a list of numbers, calculate its total and display the result using Python's built-in sum and print functions.",
+      "tags": ["basic", "basics", "hello", "world", "starter", "beginner", "total", "sum", "numbers", "output"],
+      "docs": "https://docs.python.org/3/library/functions.html",
+      "install": "Python 3; no extra packages. Save as starter.py and run python starter.py.",
+      "snippet": "numbers = [2, 4, 6]\ntotal = sum(numbers)\nprint(f\"Total: {total}\")\n",
+      "explanation": "The list stores three integers. sum adds them and returns 12. The assignment keeps that result in total; the f-string inserts it into a readable message, and print displays that message. Use this pattern to calculate a summary from several values.",
+      "expected_output": "Total: 12"
+    },
+    {
+      "name": "JavaScript Array and console",
+      "languages": ["JavaScript"],
+      "baseline_for": "JavaScript",
+      "description": "Add numeric array values with reduce and show the result with console.log. Runs in Node.js or a browser console without external packages.",
+      "tags": ["basic", "basics", "hello", "world", "starter", "beginner", "array", "total", "sum", "numbers", "output"],
+      "docs": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reduce",
+      "install": "Node.js; save as starter.js and run node starter.js. A browser console also supports this example.",
+      "snippet": "const numbers = [2, 4, 6];\nconst total = numbers.reduce((sum, value) => sum + value, 0);\nconsole.log(`Total: ${total}`);\n",
+      "explanation": "const creates bindings for the array and calculated total. reduce calls the arrow function with the running sum and each value, starting from 0. The template literal inserts total into the output. This is similar to Python sum(numbers), but JavaScript uses an array method and an explicit accumulator callback.",
+      "expected_output": "Total: 12"
+    },
+    {
+      "name": "C++ iostream and numeric",
+      "languages": ["C++"],
+      "baseline_for": "C++",
+      "description": "Use the C++ standard library to calculate an array total and display it. No third-party library is required.",
+      "tags": ["basic", "basics", "hello", "world", "starter", "beginner", "array", "total", "sum", "numbers", "output"],
+      "docs": "https://en.cppreference.com/w/cpp/algorithm/accumulate",
+      "install": "A C++ compiler; g++ starter.cpp -o starter, then run the produced executable.",
+      "snippet": "#include <iostream>\n#include <numeric>\n\nint main() {\n    int numbers[] = {2, 4, 6};\n    int total = std::accumulate(numbers, numbers + 3, 0);\n    std::cout << \"Total: \" << total << \"\\n\";\n    return 0;\n}\n",
+      "explanation": "iostream declares the standard output stream; numeric declares accumulate. main is the executable entry point. The integer array contains three values; numbers and numbers + 3 mark the beginning and one-past-the-end of its range. accumulate adds that range starting from 0. cout streams the label and result to the console. Unlike Python, this source must be compiled and its types and headers checked before execution.",
+      "expected_output": "Total: 12"
+    },
+    {
+      "name": "C stdio.h",
+      "languages": ["C"],
+      "baseline_for": "C",
+      "description": "Calculate an integer total and print it with the C standard input/output library.",
+      "tags": ["basic", "basics", "hello", "world", "starter", "beginner", "array", "stdio", "printf", "total", "sum", "numbers", "output"],
+      "docs": "https://en.cppreference.com/w/c/io",
+      "install": "A C99-or-later compiler; gcc -std=c99 starter.c -o starter, then run the produced executable.",
+      "snippet": "#include <stdio.h>\n\nint main(void) {\n    int numbers[] = {2, 4, 6};\n    int total = 0;\n    for (int index = 0; index < 3; ++index) {\n        total += numbers[index];\n    }\n    printf(\"Total: %d\\n\", total);\n    return 0;\n}\n",
+      "explanation": "stdio.h declares printf. main starts the program and returns a status code. int explicitly selects integer storage. The loop visits indexes 0, 1 and 2, adding each array element to total. printf uses %d as the placeholder for that integer and a newline to finish the output line. Python could express the calculation as sum(numbers); C requires declared types and explicit loop or library operations, and braces delimit the loop body.",
+      "expected_output": "Total: 12"
+    },
+    {
+      "name": "C string.h",
+      "languages": ["C"],
+      "description": "Use strlen to count bytes before the terminating null in a C string. This is not a Unicode character counter.",
+      "tags": ["basic", "string", "text", "length", "strlen"],
+      "docs": "https://en.cppreference.com/w/c/string/byte/strlen",
+      "install": "A C compiler; gcc starter.c -o starter, then run the produced executable.",
+      "snippet": "#include <stdio.h>\n#include <string.h>\n\nint main(void) {\n    const char text[] = \"Hello\";\n    printf(\"Length: %zu\\n\", strlen(text));\n    return 0;\n}\n",
+      "explanation": "The character array stores Hello followed by a terminating null byte. string.h declares strlen, which counts bytes up to that terminator; it returns size_t, printed using %zu. const prevents changes to this array through its declared name. Python len on a string counts Unicode code points, so its result is not always interchangeable with C strlen on encoded bytes.",
+      "expected_output": "Length: 5"
+    },
+    {
+      "name": "TypeScript typed arrays", "languages": ["TypeScript"], "baseline_for": "TypeScript",
+      "description": "Declare a numeric array, sum its values with reduce and display the total. Type annotations let the compiler detect incompatible values before JavaScript runs.",
+      "tags": ["basic", "basics", "starter", "hello", "world", "array", "sum", "total", "numbers", "output"],
+      "docs": "https://www.typescriptlang.org/docs/handbook/2/everyday-types.html",
+      "install": "TypeScript compiler and Node.js. Save as starter.ts; tsc starter.ts, then node starter.js.",
+      "snippet": "const numbers: number[] = [2, 4, 6];\nconst total: number = numbers.reduce((sum, value) => sum + value, 0);\nconsole.log(`Total: ${total}`);\n", "expected_output": "Total: 12"
+    },
+    {
+      "name": "System.Console and arrays", "languages": ["C#"], "baseline_for": "C#",
+      "description": "Use an integer array, foreach and System.Console to calculate and display a total in a standalone console program.",
+      "tags": ["basic", "basics", "starter", "hello", "world", "array", "sum", "total", "numbers", "console", "output"],
+      "docs": "https://learn.microsoft.com/en-us/dotnet/api/system.console",
+      "install": "A .NET SDK console project. Replace Program.cs with this code and run dotnet run.",
+      "snippet": "using System;\n\nclass Program\n{\n    static void Main()\n    {\n        int[] numbers = { 2, 4, 6 };\n        int total = 0;\n        foreach (int value in numbers) total += value;\n        Console.WriteLine($\"Total: {total}\");\n    }\n}\n", "expected_output": "Total: 12"
+    },
+    {
+      "name": "Java arrays and System.out", "languages": ["Java"], "baseline_for": "Java",
+      "description": "A main method visits an integer array with an enhanced for loop. System.out.println displays the resulting total.",
+      "tags": ["basic", "basics", "starter", "hello", "world", "array", "sum", "total", "numbers", "output"],
+      "docs": "https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/System.html",
+      "install": "A Java JDK. Save as Main.java; javac Main.java, then java Main.",
+      "snippet": "class Main {\n    public static void main(String[] args) {\n        int[] numbers = {2, 4, 6};\n        int total = 0;\n        for (int value : numbers) total += value;\n        System.out.println(\"Total: \" + total);\n    }\n}\n", "expected_output": "Total: 12"
+    },
+    {
+      "name": "HTML elements and CSS selectors", "languages": ["HTML / CSS"], "baseline_for": "HTML / CSS",
+      "description": "HTML creates a heading and paragraph. A CSS class selector gives the heading a green colour; the browser renders the document without a build tool.",
+      "tags": ["basic", "basics", "starter", "hello", "world", "web", "page", "heading", "style", "colour"],
+      "docs": "https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/Styling_basics",
+      "install": "A web browser. Save as starter.html and open it, or use Run code.",
+      "snippet": "<!doctype html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<title>My first page</title>\n<style>\n  body { font-family: sans-serif; margin: 2rem; }\n  .greeting { color: darkgreen; }\n</style>\n</head>\n<body>\n<h1 class=\"greeting\">Hello from OG Code Companion</h1>\n<p>Edit the heading or its CSS colour, then preview again.</p>\n</body>\n</html>\n", "expected_output": "A green heading and a paragraph on a browser page."
+    },
+    {
+      "name": "SQL SELECT and SUM", "languages": ["SQL"], "baseline_for": "SQL",
+      "description": "Create a temporary result set using a common table expression, then SUM its numeric column. This read-only example does not create or alter a stored table.",
+      "tags": ["basic", "basics", "starter", "hello", "world", "query", "sum", "total", "numbers", "database"],
+      "docs": "https://www.sqlite.org/lang_aggfunc.html", "install": "SQLite or another SQL engine supporting common table expressions; run the query in its SQL editor.",
+      "snippet": "WITH numbers(value) AS (\n    SELECT 2 UNION ALL SELECT 4 UNION ALL SELECT 6\n)\nSELECT SUM(value) AS total FROM numbers;\n", "expected_output": "One row with column total and value 12."
+    },
+    {
+      "name": "Go fmt and slices", "languages": ["Go"], "baseline_for": "Go",
+      "description": "Use a slice, a range loop and the fmt standard library. The blank identifier ignores each index while value supplies the element being added.",
+      "tags": ["basic", "basics", "starter", "hello", "world", "slice", "sum", "total", "numbers", "output"],
+      "docs": "https://pkg.go.dev/fmt", "install": "Go toolchain; save as starter.go and run go run starter.go.",
+      "snippet": "package main\n\nimport \"fmt\"\n\nfunc main() {\n    numbers := []int{2, 4, 6}\n    total := 0\n    for _, value := range numbers { total += value }\n    fmt.Printf(\"Total: %d\\n\", total)\n}\n", "expected_output": "Total: 12"
+    },
+    {
+      "name": "Rust std iterators", "languages": ["Rust"], "baseline_for": "Rust",
+      "description": "An array supplies integers to an iterator; sum combines them. The explicit i32 result type tells the compiler which integer sum to construct.",
+      "tags": ["basic", "basics", "starter", "hello", "world", "array", "sum", "total", "numbers", "output"],
+      "docs": "https://doc.rust-lang.org/std/iter/trait.Iterator.html", "install": "Rust toolchain; rustc starter.rs -o starter, then run the produced executable.",
+      "snippet": "fn main() {\n    let numbers = [2, 4, 6];\n    let total: i32 = numbers.iter().sum();\n    println!(\"Total: {}\", total);\n}\n", "expected_output": "Total: 12"
+    },
+    {
+      "name": "PHP arrays and array_sum", "languages": ["PHP"], "baseline_for": "PHP",
+      "description": "Use a PHP array and the built-in array_sum function. A double-quoted string interpolates the calculated variable into the displayed message.",
+      "tags": ["basic", "basics", "starter", "hello", "world", "array", "sum", "total", "numbers", "output"],
+      "docs": "https://www.php.net/manual/en/function.array-sum.php", "install": "PHP CLI; php starter.php.",
+      "snippet": "<?php\n$numbers = [2, 4, 6];\n$total = array_sum($numbers);\necho \"Total: $total\\n\";\n", "expected_output": "Total: 12"
+    },
+    {
+      "name": "Ruby Array and sum", "languages": ["Ruby"], "baseline_for": "Ruby",
+      "description": "An Array stores numeric values; sum returns their total. String interpolation embeds the result and puts prints the message with a newline.",
+      "tags": ["basic", "basics", "starter", "hello", "world", "array", "sum", "total", "numbers", "output"],
+      "docs": "https://docs.ruby-lang.org/en/master/Array.html", "install": "Ruby 2.4 or later; ruby starter.rb.",
+      "snippet": "numbers = [2, 4, 6]\ntotal = numbers.sum\nputs \"Total: #{total}\"\n", "expected_output": "Total: 12"
+    },
+    {
+      "name": "PowerShell Measure-Object", "languages": ["PowerShell"], "baseline_for": "PowerShell",
+      "description": "Pipe array values into Measure-Object -Sum and read its Sum property. The pipeline carries objects rather than Python function arguments.",
+      "tags": ["basic", "basics", "starter", "hello", "world", "array", "sum", "total", "numbers", "output"],
+      "docs": "https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/measure-object", "install": "PowerShell; pwsh -NoProfile -File starter.ps1.",
+      "snippet": "$numbers = @(2, 4, 6)\n$total = ($numbers | Measure-Object -Sum).Sum\nWrite-Output \"Total: $total\"\n", "expected_output": "Total: 12"
+    },
+    {
+      "name": "Bash arrays and arithmetic", "languages": ["Bash"], "baseline_for": "Bash",
+      "description": "Iterate a Bash array, accumulate integer arithmetic and print a formatted result. Quoting preserves array elements as separate arguments.",
+      "tags": ["basic", "basics", "starter", "hello", "world", "array", "sum", "total", "numbers", "output"],
+      "docs": "https://www.gnu.org/software/bash/manual/bash.html", "install": "Bash, for example in WSL on Windows; bash starter.sh.",
+      "snippet": "#!/usr/bin/env bash\nnumbers=(2 4 6)\ntotal=0\nfor value in \"${numbers[@]}\"; do\n    total=$((total + value))\ndone\nprintf \"Total: %s\\n\" \"$total\"\n", "expected_output": "Total: 12"
+    },
+    {
+      "name": "Kotlin standard collections", "languages": ["Kotlin"], "baseline_for": "Kotlin",
+      "description": "listOf constructs a read-only list and sum adds its elements. val prevents rebinding; string interpolation inserts the resulting total.",
+      "tags": ["basic", "basics", "starter", "hello", "world", "list", "sum", "total", "numbers", "output"],
+      "docs": "https://kotlinlang.org/docs/collections-overview.html", "install": "Kotlin compiler and Java runtime; kotlinc starter.kt -include-runtime -d starter.jar, then java -jar starter.jar.",
+      "snippet": "fun main() {\n    val numbers = listOf(2, 4, 6)\n    val total = numbers.sum()\n    println(\"Total: $total\")\n}\n", "expected_output": "Total: 12"
+    },
+    {
+      "name": "Swift standard Array", "languages": ["Swift"], "baseline_for": "Swift",
+      "description": "Create an integer array and reduce it with addition, starting from zero. let keeps bindings fixed and string interpolation displays the total.",
+      "tags": ["basic", "basics", "starter", "hello", "world", "array", "sum", "total", "numbers", "output"],
+      "docs": "https://docs.swift.org/swift-book/documentation/the-swift-programming-language/collectiontypes/", "install": "Swift toolchain; swift starter.swift.",
+      "snippet": "let numbers = [2, 4, 6]\nlet total = numbers.reduce(0, +)\nprint(\"Total: \" + String(total))\n", "expected_output": "Total: 12"
+    },
+    {
+      "name": "Dart core List", "languages": ["Dart"], "baseline_for": "Dart",
+      "description": "List.fold combines elements into an integer accumulator. final binds the list and total once; print displays the interpolated result.",
+      "tags": ["basic", "basics", "starter", "hello", "world", "list", "sum", "total", "numbers", "output"],
+      "docs": "https://api.dart.dev/dart-core/List-class.html", "install": "Dart SDK; dart run starter.dart.",
+      "snippet": "void main() {\n  final numbers = [2, 4, 6];\n  final total = numbers.fold<int>(0, (sum, value) => sum + value);\n  print(\"Total: $total\");\n}\n", "expected_output": "Total: 12"
+    },
+    {
+      "name": "R base vectors and sum", "languages": ["R"], "baseline_for": "R",
+      "description": "c constructs a numeric vector; sum totals it. cat displays the label, calculated value and newline without creating a data frame or installing a package.",
+      "tags": ["basic", "basics", "starter", "hello", "world", "vector", "sum", "total", "numbers", "output"],
+      "docs": "https://stat.ethz.ch/R-manual/R-devel/library/base/html/sum.html", "install": "R; Rscript starter.R.",
+      "snippet": "numbers <- c(2, 4, 6)\ntotal <- sum(numbers)\ncat(\"Total:\", total, \"\\n\")\n", "expected_output": "Total: 12"
+    },
+    {
+      "name": "FSharp.Core List", "languages": ["F#"], "baseline_for": "F#",
+      "description": "A semicolon-separated list stores integers and List.sum totals them. printfn formats the integer with %d and ends the output line.",
+      "tags": ["basic", "basics", "starter", "hello", "world", "list", "sum", "total", "numbers", "output"],
+      "docs": "https://learn.microsoft.com/en-us/dotnet/fsharp/language-reference/lists", "install": "A .NET SDK with F# Interactive; save as starter.fsx and run dotnet fsi starter.fsx.",
+      "snippet": "let numbers = [2; 4; 6]\nlet total = List.sum numbers\nprintfn \"Total: %d\" total\n", "expected_output": "Total: 12"
+    },
+    {
+      "name": "Scala standard List", "languages": ["Scala"], "baseline_for": "Scala",
+      "description": "A List stores integers and its sum method totals them. The main method runs the example; the s-prefixed string interpolates the result.",
+      "tags": ["basic", "basics", "starter", "hello", "world", "list", "sum", "total", "numbers", "output"],
+      "docs": "https://docs.scala-lang.org/scala3/book/collections-classes.html", "install": "Scala toolchain and Java runtime; run this as Main in a Scala project or with a Scala runner.",
+      "snippet": "object Main {\n  def main(args: Array[String]): Unit = {\n    val numbers = List(2, 4, 6)\n    val total = numbers.sum\n    println(s\"Total: $total\")\n  }\n}\n", "expected_output": "Total: 12"
+    },
+    {
+      "name": "CMake built-in list operations", "languages": ["CMake"], "baseline_for": "CMake",
+      "description": "Use a CMake list, foreach and math(EXPR) to calculate a total. Run this as a CMake script; it does not compile C or C++ source.",
+      "tags": ["basic", "basics", "starter", "hello", "world", "list", "sum", "total", "numbers", "output"],
+      "docs": "https://cmake.org/cmake/help/latest/command/list.html", "install": "CMake 3.16 or later; save as starter.cmake and run cmake -P starter.cmake.",
+      "snippet": "cmake_minimum_required(VERSION 3.16)\nset(numbers 2 4 6)\nset(total 0)\nforeach(value IN LISTS numbers)\n    math(EXPR total \"${total} + ${value}\")\nendforeach()\nmessage(STATUS \"Total: ${total}\")\n", "expected_output": "A status line containing Total: 12."
     }
   ]
 }

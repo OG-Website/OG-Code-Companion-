@@ -110,11 +110,16 @@ class CodeHTML(HTMLParser):
         super().__init__(convert_charrefs=True)
         self.blocks = []; self.parts = []; self.depth = 0
         self.language = ''; self.heading = ''; self.heading_parts = None
+        self.prose=[];self.contexts=[];self.hidden=0
     def handle_starttag(self, tag, attrs):
         attrs = dict(attrs)
+        if tag in ('script','style'):self.hidden+=1
+        if tag in ('p','li','h1','h2','h3','h4','h5','h6') and not self.depth:self.prose.append('\n')
         if re.fullmatch('h[1-6]', tag) and not self.depth: self.heading_parts = []
         if tag == 'pre':
-            if not self.depth: self.parts = []; self.language = attrs.get('data-language', '')
+            if not self.depth:
+                self.parts = []; self.language = attrs.get('data-language', '')
+                self.contexts.append(''.join(self.prose).strip()[-1800:]);self.prose=[]
             self.depth += 1
         if self.depth:
             classes = attrs.get('class', '')
@@ -123,6 +128,7 @@ class CodeHTML(HTMLParser):
             self.language = attrs.get('data-language', self.language)
             if tag == 'br': self.parts.append('\n')
     def handle_endtag(self, tag):
+        if tag in ('script','style'):self.hidden=max(0,self.hidden-1)
         if re.fullmatch('h[1-6]', tag) and self.heading_parts is not None:
             self.heading = ''.join(self.heading_parts).strip(); self.heading_parts = None
         if tag == 'pre' and self.depth:
@@ -131,6 +137,7 @@ class CodeHTML(HTMLParser):
                 self.blocks.append((self.heading, self.language, ''.join(self.parts).strip()))
     def handle_data(self, data):
         if self.depth: self.parts.append(data)
+        elif not self.hidden:self.prose.append(data)
         if self.heading_parts is not None: self.heading_parts.append(data)
 
 
@@ -143,21 +150,23 @@ def infer_language(code, default):
 
 def extract_examples(text, url, language, *, attribution='', licence='See source terms'):
     """Return every code block in the loaded page, retaining its provenance."""
-    raw = []
+    raw = [];contexts=[]
     if '<pre' in text.casefold():
-        parser = CodeHTML(); parser.feed(text); raw.extend(parser.blocks)
+        parser = CodeHTML(); parser.feed(text); raw.extend(parser.blocks);contexts=parser.contexts
     else:
         fence = re.compile(r'^\s*(`{3,}|~{3,})([^\n]*)\n(.*?)^\s*\1\s*$', re.M | re.S)
         for match in fence.finditer(text):
             headings = re.findall(r'^#{1,6}\s+(.+)$', text[:match.start()], re.M)
             raw.append((headings[-1] if headings else 'Example', match[2].strip().split(' ')[0], match[3].strip()))
+            prefix=text[:match.start()];previous=list(fence.finditer(prefix));start=previous[-1].end() if previous else 0
+            contexts.append(prefix[start:].strip()[-1800:])
         if not raw:
             # reStructuredText is used in many PyPI descriptions.
             for match in re.finditer(r'^\.\. code(?:-block)?::\s*(\w*)\s*\n((?:[ \t]+[^\n]*\n|\n)+)', text, re.M):
                 import textwrap
                 raw.append(('Example', match[1], textwrap.dedent(match[2]).strip()))
     rows = []; seen = set()
-    for title, hint, code in raw:
+    for raw_index,(title, hint, code) in enumerate(raw):
         if not code or code in seen: continue
         seen.add(code)
         hint=hint.split(',')[0].strip('{}.')
@@ -166,7 +175,8 @@ def extract_examples(text, url, language, *, attribution='', licence='See source
         if re.search(r'^>>> ', code, re.M): actual_language = 'Python transcript'
         rows.append({'title': f'{len(rows)+1}. {title[:95] or "Example"}', 'code': code,
                      'language': actual_language, 'url': url, 'attribution': attribution,
-                     'licence': licence, 'retrieved_at': datetime.now(timezone.utc).isoformat()})
+                     'licence': licence, 'source_context':contexts[raw_index] if raw_index<len(contexts) else '',
+                     'retrieved_at': datetime.now(timezone.utc).isoformat()})
     return rows
 
 
@@ -183,13 +193,84 @@ def documentation_catalogue(online=True):
 
 def documentation_language(docset, fallback='Text'):
     family=docset['slug'].split('~')[0]
-    if family in ('python','numpy','pandas','scipy','scikit-learn','scikit_learn','django','flask','fastapi','requests','pytest','tensorflow','pytorch','sphinx','matplotlib','seaborn','statsmodels'):return 'Python'
-    if family in ('javascript','node','express','react','react_native','vue','vueuse','angular','jquery','lodash','underscore','nextjs','svelte','d3','moment','rxjs','backbone'):return 'JavaScript'
+    if family in ('python','numpy','pandas','scipy','scikit-learn','scikit_learn','django','django_rest_framework','flask','fastapi','requests','pytest','tensorflow','pytorch','sphinx','matplotlib','seaborn','statsmodels','click','bottle','celery','falcon','polars','pygame','scikit_image','trio','wagtail','werkzeug','saltstack'):return 'Python'
+    if family in ('javascript','node','express','react','react_native','vue','vueuse','angular','jquery','lodash','underscore','nextjs','svelte','d3','moment','rxjs','backbone','dom','web_extensions','angularjs','astro','async','axios','babel','bluebird','bun','chai','codeceptjs','cordova','cypress','date_fns','deno','dojo','electron','ember','enzyme','es_toolkit','esbuild','eslint','flow','fluture','grunt','hapi','htmx','immutable','jasmine','jest','joi','jquerymobile','jqueryui','jsdoc','knockout','koa','leaflet','lit','maplibre_gl','marionette','meteor','mocha','modernizr','moment_timezone','mongoose','npm','openlayers','phaser','playwright','prettier','puppeteer','qunit','ramda','react_bootstrap','react_router','redux','relay','requirejs','sanctuary','sanctuary_def','sanctuary_type_classes','sequelize','sinon','socketio','threejs','valibot','vite','vitest','vue_router','vuex','webpack','yarn'):return 'JavaScript'
     if family in ('sqlite','mysql','mariadb','postgresql'):return 'SQL'
     if family=='cpp':return 'C++'
     if family.startswith('openjdk'):return 'Java'
     if family=='dotnet':return 'C#'
+    if family in ('cakephp','codeception','codeigniter','composer','drupal','laravel','phalcon','phpunit','symfony','twig','wordpress','yii'):return 'PHP'
+    if family in ('jekyll','nokogiri','padrino','minitest','rack','rails','vagrant'):return 'Ruby'
+    if family in ('eigen3','point_cloud_library','qt','tensorflow_cpp'):return 'C++'
+    if family in ('spring_boot','vertx'):return 'Java'
+    if family=='tokio':return 'Rust'
+    if family=='cmake':return 'CMake'
     return ALIASES.get(family,fallback)
+
+
+def compatible_examples(examples, language):
+    """Never silently substitute another language, commands or transcripts."""
+    return [e for e in examples if e.get('language') == language]
+
+
+def task_docsets(description, language, catalogue):
+    """Rank library names only within a known language family."""
+    words=tokens(description);ranked=[];seen=set()
+    browser=language=='JavaScript' and bool(words & {'button','click','dom','element','page','browser','html','event'})
+    for doc in catalogue:
+        family=doc['slug'].split('~')[0]
+        if family in seen or documentation_language(doc)!=language:continue
+        name=doc['name'].casefold();names=tokens(name+' '+family)
+        score=20*len(words & names)+(100 if name==description.strip().casefold() else 0)
+        if browser and family=='dom':score+=80
+        if family==DOC_DEFAULTS.get(language,'').split('~')[0]:score+=1
+        if score:ranked.append((score,doc));seen.add(family)
+    return [doc for _,doc in sorted(ranked,key=lambda pair:-pair[0])]
+
+
+def discover_task_examples(description, language, *, online=True, catalogue=None, page=1):
+    """Search matching documentation and real package sources without a model."""
+    from og_companion_search import search_libraries, task_libraries, task_terms
+    catalogue=documentation_catalogue(online=False) if catalogue is None else catalogue
+    entries=[];examples=[];issues=[];seen=set()
+    def keep(blocks,entry=None):
+        for block in compatible_examples(blocks,language):
+            key=(block['code'],block['language'])
+            if key not in seen:
+                seen.add(key);block=dict(block)
+                if entry:block['library']={k:entry[k] for k in ('name','description','install','docs') if k in entry}
+                examples.append(block)
+    query=' '.join(sorted(task_terms(description)))
+    for doc in task_docsets(description,language,catalogue)[:3]:
+        try:
+            rows,_=documentation_search(doc,query,page=page,online=online,language=language,page_size=30)
+            entries.extend(rows)
+            for entry in rows[:3]:
+                blocks,_=library_examples(entry,online=online,complete=False);keep(blocks,entry)
+            if not rows or not examples:
+                blocks,_=collection_examples(doc,online=online)
+                ranked=sorted(blocks,key=lambda e:-len(tokens(e.get('title','')+' '+e.get('topic','')+' '+e['code']) & tokens(query)))
+                keep([e for e in ranked if tokens(e.get('title','')+' '+e.get('topic','')+' '+e['code']) & tokens(query)])
+                if not rows:
+                    entries.append(package_result(doc['name'],language,'Documentation collection','Published reference examples; inspect their source context.',doc.get('version') or 'Current','https://devdocs.io/'+doc['slug'],'See source documentation'))
+        except (OSError,ValueError,KeyError,RuntimeError) as error:issues.append(str(error))
+    # Package discovery is not limited to the supplied teaching catalogue.
+    try:
+        packages,status=search_libraries(description,language,online,page=page) if online else (task_libraries(description,language),'Supplied/offline packages')
+        entries.extend(packages)
+        for entry in packages[:3]:
+            try:
+                blocks,_=library_examples(entry,online=online,complete=False);keep(blocks,entry)
+            except (OSError,ValueError,KeyError,RuntimeError) as error:issues.append(str(error))
+    except (OSError,ValueError,KeyError,RuntimeError) as error:issues.append(str(error))
+    unique_entries=[];keys=set()
+    for entry in entries:
+        key=(entry['name'],entry['docs'])
+        if key not in keys:keys.add(key);unique_entries.append(entry)
+    status=f'{len(examples)} matching {language} examples · {len(unique_entries)} library/API results · '+('online/cached sources' if online else 'offline sources')
+    if issues:status+=' · '+str(len(issues))+' source checks unavailable'
+    if not examples:status+='. No suitable source block found; try an exact library/API name or another result page. Your code is retained.'
+    return unique_entries,examples,status
 
 
 def documentation_search(docset, query='', *, page=1, online=True, page_size=100, language=None):
@@ -207,7 +288,7 @@ def documentation_search(docset, query='', *, page=1, online=True, page_size=100
     ranked.sort(key=lambda pair: (-pair[0], pair[1]['name'].casefold()))
     rows = []
     for _, item in ranked[(page-1)*page_size:page*page_size]:
-        row = package_result(item['name'], documentation_language(docset,language or docset['name']),
+        row = package_result(item['name'], documentation_language(docset),
                              'DevDocs', item.get('type','')+' · '+docset['name'], docset.get('version') or 'Current edition',
                              'https://devdocs.io/'+quote(slug)+'/'+item['path'], 'See library documentation')
         row.update(docset=docset, path=item['path'], attribution=unescape(re.sub('<[^>]+>', ' ', docset.get('attribution',''))).strip())
@@ -256,7 +337,7 @@ def matching_documentation(entry):
     wanted.discard('')
     for doc in documentation_catalogue(online=False):
         names={normal(doc['name']),normal(doc['slug'].split('~')[0]),normal(doc.get('alias') or '')}
-        if wanted & names and documentation_language(doc,entry['language'])==entry['language']:
+        if wanted & names and documentation_language(doc)==entry['language']:
             return doc
     return None
 
@@ -322,7 +403,7 @@ def library_examples(entry, *, online=True, complete=True):
         except (OSError,ValueError,RuntimeError) as error:issues.append('Complete collection unavailable: '+str(error))
     if entry.get('snippet'):
         blocks.append({'title':'Supplied offline example', 'code':entry['snippet'], 'language':language,
-                       'url':entry['docs'], 'attribution':'OG Companion teaching example', 'licence':'OG Web.site teaching example'})
+                       'url':entry['docs'], 'attribution':'OG Code Companion teaching example', 'licence':'OG Web.site teaching example'})
     if entry['source']=='PyPI':
         api = 'https://pypi.org/pypi/'+quote(entry['name'],safe='')+'/json'
         try:
